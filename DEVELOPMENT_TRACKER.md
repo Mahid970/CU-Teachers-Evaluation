@@ -88,3 +88,9 @@ leaderboard and the full directory. You can sort by highest rated, lowest rated,
 most rated or name, and filter by faculty; the rows slide into their new
 positions instead of jumping. Teachers without enough ratings stay hidden from
 the rankings.
+
+## 10. The homepage
+
+Put the homepage together: a headline, the two main buttons, live counts of
+teachers and ratings, the leaderboard, a short explanation of how it works, the
+faculty grid, and a plain list of what the site refuses to store about you.
