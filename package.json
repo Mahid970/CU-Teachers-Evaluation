@@ -1,0 +1,52 @@
+{
+  "name": "cu-teacher-eval",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "seed": "tsx scripts/seed.ts",
+    "db:local": "wrangler d1 migrations apply cu-teacher-eval --local",
+    "db:remote": "wrangler d1 migrations apply cu-teacher-eval --remote",
+    "db:reset": "rm -rf .wrangler/state/v3/d1 && npm run db:local",
+    "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "keys:gen": "tsx scripts/gen-term-keys.ts",
+    "stats:build": "tsx scripts/build-stats.ts",
+    "dev:sample": "tsx scripts/dev-sample-ratings.ts",
+    "term:close": "tsx scripts/close-term.ts",
+    "audit:privacy": "node scripts/privacy-audit.mjs",
+    "check:e2e": "node scripts/e2e-check.mjs",
+    "types": "wrangler types"
+  },
+  "dependencies": {
+    "@cloudflare/blindrsa-ts": "^0.4.6",
+    "jose": "^6.2.12",
+    "lucide-react": "^1.47.0",
+    "motion": "^13.4.0",
+    "next": "16.3.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260917.1",
+    "@opennextjs/cloudflare": "^1.20.6",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^24.13.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.13",
+    "typescript": "^5",
+    "vitest": "^5.0.1",
+    "wrangler": "^4.134.0"
+  }
+}
