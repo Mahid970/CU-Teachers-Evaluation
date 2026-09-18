@@ -1,0 +1,44 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cu-teacher-eval",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Access logs stay off: the site must not hold request metadata that could
+  // be correlated with rating submissions.
+  "observability": {
+    "enabled": false,
+    "logs": { "enabled": false }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cu-teacher-eval",
+      "database_id": "local-dev-placeholder",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "RATE_LIMIT",
+      "id": "local-dev-placeholder"
+    }
+  ],
+  "triggers": {
+    // Rebuild public aggregates once a day (19:00 UTC = 01:00 Dhaka).
+    "crons": ["0 19 * * *"]
+  },
+  "vars": {
+    "STUDENT_EMAIL_DOMAIN": "std.cu.ac.bd"
+  }
+  // Secrets (set with `wrangler secret put`), never in this file:
+  //   MASTER_KEY       wraps the per-teacher signing keys
+  //   TERM_PEPPER      HMAC pepper for issuance rows; destroy when a term ends
+  //   GOOGLE_CLIENT_ID OAuth client for @std.cu.ac.bd sign-in
+  //   CRON_SECRET      lets the stats rebuild be triggered by hand
+  //   TURNSTILE_SECRET optional bot protection
+}

@@ -56,3 +56,10 @@ site never needs them.
 
 The loading script refuses to run quietly if a department name changes in the
 data, so a page can never silently end up empty.
+
+## 6. Choosing where it runs
+
+Set the site up to run on Cloudflare — cheap, fast, and it lets us switch
+request logging off completely, which matters here: logs of who visited and when
+would undo much of the anonymity work. Also scheduled a daily job that will
+refresh the public numbers.
