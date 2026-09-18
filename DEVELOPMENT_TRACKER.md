@@ -212,3 +212,9 @@ path rejected the stored key format. Fixed.
 
 Result: 9 seconds down to 59 milliseconds for a department of twenty teachers,
 with all the security checks still passing.
+
+## 22. Repository tidy-up
+
+Removed a duplicate copy of the ID-codes file from the project root (the one
+inside the data folder is the one the site uses), and stopped tracking a local
+settings file that only applies to one machine.
