@@ -177,3 +177,17 @@ it expires within the hour.
 Also wrote the end-of-term script. It closes rating, destroys the signing keys,
 and deletes the record of who collected tokens — after which not even we could
 work out who took part.
+
+## 19. Proving it actually works
+
+Two scripts that can be run any time.
+
+The first walks the whole flow and tries to break it: it checks that a token for
+one teacher is refused for another, that a forged token is refused, that
+re-rating edits instead of duplicating, and that nobody can collect a second set
+of tokens.
+
+The second is the important one. It dumps every table in the database and fails
+if it can find a student ID, an email address, an IP address or a timestamp
+anywhere. That is the promise of this site, checked by a machine instead of
+trusted.
