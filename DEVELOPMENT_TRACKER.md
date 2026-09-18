@@ -46,3 +46,13 @@ Also wrote the ranking maths. A simple average is unfair: a teacher with three
 perfect scores would beat a teacher with eighty very good ones. The site uses a
 weighted average that takes the number of ratings into account. Teachers with
 fewer than five ratings are kept out of rankings entirely.
+
+## 5. Building the database
+
+Created the database tables and a script that loads the teacher data into
+them. The design is deliberate: the ratings table has no column that could point
+to a person, and teacher email addresses are dropped on the way in, because the
+site never needs them.
+
+The loading script refuses to run quietly if a department name changes in the
+data, so a page can never silently end up empty.
