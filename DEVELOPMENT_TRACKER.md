@@ -63,3 +63,10 @@ Set the site up to run on Cloudflare — cheap, fast, and it lets us switch
 request logging off completely, which matters here: logs of who visited and when
 would undo much of the anonymity work. Also scheduled a daily job that will
 refresh the public numbers.
+
+## 7. The look of the site
+
+Built the visual style: deep green on warm off-white paper, amber for stars,
+with a printed-magazine feel rather than a typical tech website. No blue
+anywhere, by choice. Added the page frame (header, footer) and a light/dark mode
+switch that remembers the reader's choice on their own device.
