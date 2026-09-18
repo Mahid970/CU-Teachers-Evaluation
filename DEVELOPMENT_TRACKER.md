@@ -147,3 +147,12 @@ the rating form itself.
 The form waits a random moment before sending, so the time you rate cannot be
 matched to the time you signed in. When it is done, a stamp presses onto the
 page.
+
+## 16. Public numbers, refreshed once a day
+
+The scores shown on the site are rebuilt once a day rather than the moment a
+rating arrives. If they updated instantly, a teacher could watch their score move
+right after a particular student left the room.
+
+Also added a script that fills the local database with realistic fake ratings, so
+the design can be judged properly during development.
