@@ -189,14 +189,18 @@ export async function POST(request: Request) {
     .all<{ teacher_id: string; private_key_wrapped: string }>();
   const wrappedByTeacher = new Map(keyRows.map((k) => [k.teacher_id, k.private_key_wrapped]));
 
-  const signatures: { teacherId: string; blindSignature: string }[] = [];
-  for (const item of requested) {
-    const wrapped = wrappedByTeacher.get(item.teacherId);
-    if (!wrapped) continue;
-    const privateJwk = await decryptJson<JsonWebKey>(cfEnv.MASTER_KEY!, wrapped);
-    const signature = await blindSign(privateJwk, fromBase64(item.blinded));
-    signatures.push({ teacherId: item.teacherId, blindSignature: toBase64(signature) });
-  }
+  // Signed concurrently: a student waits on one round trip for every teacher
+  // in their department, so doing these one after another is felt directly.
+  const signed = await Promise.all(
+    requested.map(async (item) => {
+      const wrapped = wrappedByTeacher.get(item.teacherId);
+      if (!wrapped) return null;
+      const privateJwk = await decryptJson<JsonWebKey>(cfEnv.MASTER_KEY!, wrapped);
+      const signature = await blindSign(privateJwk, fromBase64(item.blinded));
+      return { teacherId: item.teacherId, blindSignature: toBase64(signature) };
+    }),
+  );
+  const signatures = signed.filter((s) => s !== null);
 
   return Response.json({ term: { id: term.id, label: term.label }, signatures });
 }
