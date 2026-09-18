@@ -127,3 +127,13 @@ out their department, then dropped.
 The server records exactly one fact: that a student with that ID already
 collected their tokens this term, stored as a scrambled value whose key is thrown
 away at the end of term. That single fact is what stops one person voting twice.
+
+## 14. Sending a rating
+
+Built the part that receives ratings. It has no login and no cookies on
+purpose — the token is the only proof. Sending the same token again edits that
+rating instead of adding a second one, so students can change their mind.
+
+Ratings are saved with the date only, never the time, so nobody can line a rating
+up with the moment a particular student signed in. The student's tokens live in
+their own browser, with a backup file they can save.
