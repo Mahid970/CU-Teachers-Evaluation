@@ -35,3 +35,14 @@ It handles the awkward cases: Philosophy and Islamic History swapped code number
 in 2022, Oceanography's real code is not the one on the university website, and
 old marine students share a code so the site asks them which unit they were in.
 Tests cover all of it.
+
+## 4. Deciding how rating works
+
+Set the six things students rate a teacher on (clarity, knowledge,
+punctuality, fair marking, accessibility, engagement), plus overall, difficulty
+and 'would you take their course again'.
+
+Also wrote the ranking maths. A simple average is unfair: a teacher with three
+perfect scores would beat a teacher with eighty very good ones. The site uses a
+weighted average that takes the number of ratings into account. Teachers with
+fewer than five ratings are kept out of rankings entirely.
