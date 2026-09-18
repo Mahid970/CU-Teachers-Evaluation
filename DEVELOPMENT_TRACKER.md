@@ -17,3 +17,10 @@ Created the empty website project (Next.js, TypeScript, Tailwind CSS) and the
 basic config files. Nothing visible yet — this is the foundation everything else
 sits on. Secret files are excluded from Git from the very start, so passwords and
 keys can never be uploaded by accident.
+
+## 2. Adding the university data
+
+Added the two data files collected earlier: every teacher of the university
+(1,036 people across 10 faculties and 64 departments), and the meaning of student
+ID numbers. The ID codes were checked against real student lists, not just the
+university website — the website is wrong in a few places.
