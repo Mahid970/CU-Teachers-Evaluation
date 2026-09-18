@@ -80,3 +80,11 @@ of it.
 
 Also built the star control, which works with a mouse, a finger, or the keyboard
 alone, and reads correctly to screen readers.
+
+## 9. The teacher list and leaderboard
+
+Built the teacher cards and the list that powers both the homepage
+leaderboard and the full directory. You can sort by highest rated, lowest rated,
+most rated or name, and filter by faculty; the rows slide into their new
+positions instead of jumping. Teachers without enough ratings stay hidden from
+the rankings.
