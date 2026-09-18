@@ -46,3 +46,6 @@ next-env.d.ts
 
 # Cloudflare build output
 /.open-next/
+
+# Local editor/agent permissions, specific to one machine
+.claude/settings.local.json
