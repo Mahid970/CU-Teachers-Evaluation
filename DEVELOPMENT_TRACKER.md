@@ -137,3 +137,13 @@ rating instead of adding a second one, so students can change their mind.
 Ratings are saved with the date only, never the time, so nobody can line a rating
 up with the moment a particular student signed in. The student's tokens live in
 their own browser, with a backup file they can save.
+
+## 15. The screens students actually use
+
+Three screens: sign in and see your department confirmed; a private checklist
+of teachers you still have to rate, which only exists in your own browser; and
+the rating form itself.
+
+The form waits a random moment before sending, so the time you rate cannot be
+matched to the time you signed in. When it is done, a stamp presses onto the
+page.
