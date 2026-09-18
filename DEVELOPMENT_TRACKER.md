@@ -116,3 +116,14 @@ belonging to anyone.
 
 A token for one teacher is useless for another. The teachers' signing keys are
 kept locked with a master key, and they are destroyed when the term ends.
+
+## 13. Checking the student is real
+
+Students sign in with their university Google account. The site asks Google
+for one thing only: that the address ends in std.cu.ac.bd. No email is sent, no
+login is stored, and the student ID is held in memory for a few seconds to work
+out their department, then dropped.
+
+The server records exactly one fact: that a student with that ID already
+collected their tokens this term, stored as a scrambled value whose key is thrown
+away at the end of term. That single fact is what stops one person voting twice.
