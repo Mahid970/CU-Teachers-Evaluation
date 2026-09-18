@@ -191,3 +191,10 @@ The second is the important one. It dumps every table in the database and fails
 if it can find a student ID, an email address, an IP address or a timestamp
 anywhere. That is the promise of this site, checked by a machine instead of
 trusted.
+
+## 20. Writing it down for whoever comes next
+
+Wrote the README: how anonymity works, how to run it, how to deploy it, and
+the routine at the end of each term. Also recorded the rules a future contributor
+must not break — never store anything identifying, never link sign-ins to
+ratings, no login on the rating endpoint, no free-text comments.
