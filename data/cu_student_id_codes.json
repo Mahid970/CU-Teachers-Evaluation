@@ -1,0 +1,853 @@
+{
+  "university": "University of Chittagong",
+  "compiled_on": "2026-09-17",
+  "id_format": {
+    "length": 8,
+    "structure": "SS F DD NNN",
+    "parts": [
+      {
+        "part": "SS",
+        "digits": 2,
+        "meaning": "Session code = last two digits of the session's ending year (2023-2024 -> 24)"
+      },
+      {
+        "part": "F",
+        "digits": 1,
+        "meaning": "Faculty code"
+      },
+      {
+        "part": "DD",
+        "digits": 2,
+        "meaning": "Department/institute code within the faculty"
+      },
+      {
+        "part": "NNN",
+        "digits": 3,
+        "meaning": "Student serial number (001-999)"
+      }
+    ],
+    "example": {
+      "id": "24304043",
+      "session": "2023-2024",
+      "faculty": "Business Administration (3)",
+      "department": "Marketing (04)",
+      "serial": "043"
+    },
+    "regex": "^(\\d{2})([1-9])(\\d{2})(\\d{3})$"
+  },
+  "session_codes": [
+    {
+      "session": "2014-2015",
+      "session_code": "15",
+      "evidence": "derived from rule"
+    },
+    {
+      "session": "2015-2016",
+      "session_code": "16",
+      "evidence": "seen in student IDs (voter lists)"
+    },
+    {
+      "session": "2016-2017",
+      "session_code": "17",
+      "evidence": "seen in student IDs (voter lists)"
+    },
+    {
+      "session": "2017-2018",
+      "session_code": "18",
+      "evidence": "seen in student IDs (voter lists)"
+    },
+    {
+      "session": "2018-2019",
+      "session_code": "19",
+      "evidence": "verified (session printed next to IDs in hall allotment result)"
+    },
+    {
+      "session": "2019-2020",
+      "session_code": "20",
+      "evidence": "verified (session printed next to IDs in hall allotment result)"
+    },
+    {
+      "session": "2020-2021",
+      "session_code": "21",
+      "evidence": "verified (session printed next to IDs in hall allotment result)"
+    },
+    {
+      "session": "2021-2022",
+      "session_code": "22",
+      "evidence": "verified (session printed next to IDs in hall allotment result)"
+    },
+    {
+      "session": "2022-2023",
+      "session_code": "23",
+      "evidence": "verified (session printed next to IDs in hall allotment result)"
+    },
+    {
+      "session": "2023-2024",
+      "session_code": "24",
+      "evidence": "verified (session printed next to IDs in hall allotment result)"
+    },
+    {
+      "session": "2024-2025",
+      "session_code": "25",
+      "evidence": "seen in student IDs (voter lists)"
+    },
+    {
+      "session": "2025-2026",
+      "session_code": "26",
+      "evidence": "seen in student IDs (voter lists)"
+    }
+  ],
+  "faculty_codes": [
+    {
+      "faculty_code": "1",
+      "faculty_name": "Faculty of Arts and Humanities"
+    },
+    {
+      "faculty_code": "2",
+      "faculty_name": "Faculty of Science"
+    },
+    {
+      "faculty_code": "3",
+      "faculty_name": "Faculty of Business Administration"
+    },
+    {
+      "faculty_code": "4",
+      "faculty_name": "Faculty of Social Sciences"
+    },
+    {
+      "faculty_code": "5",
+      "faculty_name": "Faculty of Law"
+    },
+    {
+      "faculty_code": "6",
+      "faculty_name": "Faculty of Biological Sciences"
+    },
+    {
+      "faculty_code": "7",
+      "faculty_name": "Faculty of Engineering"
+    },
+    {
+      "faculty_code": "8",
+      "faculty_name": "Faculty of Education"
+    },
+    {
+      "faculty_code": "9",
+      "faculty_name": "Faculty of Marine Sciences and Fisheries"
+    }
+  ],
+  "faculties": [
+    {
+      "faculty_code": "1",
+      "faculty_name": "Faculty of Arts and Humanities",
+      "departments": [
+        {
+          "department_code": "01",
+          "full_code": "101",
+          "name": "Bangla",
+          "type": "Department",
+          "id_prefix_example": "24101",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "02",
+          "full_code": "102",
+          "name": "English",
+          "type": "Department",
+          "id_prefix_example": "24102",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "03",
+          "full_code": "103",
+          "name": "History",
+          "type": "Department",
+          "id_prefix_example": "24103",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "04",
+          "full_code": "104",
+          "name": "Philosophy",
+          "type": "Department",
+          "id_prefix_example": "24104",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ],
+          "note": "Code SWAPPED with Islamic History & Culture from session 2022-2023 (ID prefix 23) onward. Session 2021-2022 and earlier: Philosophy = 105.",
+          "code_history": [
+            {
+              "sessions": "2022-2023 onward",
+              "code": "104"
+            },
+            {
+              "sessions": "2021-2022 and earlier",
+              "code": "105"
+            }
+          ]
+        },
+        {
+          "department_code": "05",
+          "full_code": "105",
+          "name": "Islamic History and Culture",
+          "type": "Department",
+          "id_prefix_example": "24105",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ],
+          "note": "Code SWAPPED with Philosophy from session 2022-2023 (ID prefix 23) onward. Session 2021-2022 and earlier: IHC = 104. (The cu.ac.bd website still lists the old codes: IHC 104, Philosophy 105.)",
+          "code_history": [
+            {
+              "sessions": "2022-2023 onward",
+              "code": "105"
+            },
+            {
+              "sessions": "2021-2022 and earlier",
+              "code": "104"
+            }
+          ]
+        },
+        {
+          "department_code": "06",
+          "full_code": "106",
+          "name": "Fine Arts (Institute of Fine Arts)",
+          "type": "Institute",
+          "id_prefix_example": "24106",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "07",
+          "full_code": "107",
+          "name": "Arabic",
+          "type": "Department",
+          "id_prefix_example": "24107",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "08",
+          "full_code": "108",
+          "name": "Pali",
+          "type": "Department",
+          "id_prefix_example": "24108",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "10",
+          "full_code": "110",
+          "name": "Islamic Studies",
+          "type": "Department",
+          "id_prefix_example": "24110",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "11",
+          "full_code": "111",
+          "name": "Dramatics",
+          "type": "Department",
+          "id_prefix_example": "24111",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "12",
+          "full_code": "112",
+          "name": "Persian Language and Literature",
+          "type": "Department",
+          "id_prefix_example": "24112",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "13",
+          "full_code": "113",
+          "name": "Institute of Education and Research (IER)",
+          "type": "Institute",
+          "id_prefix_example": "24113",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ],
+          "note": "Uses Arts faculty code 1 in student IDs, although the website lists IER under the Faculty of Education."
+        },
+        {
+          "department_code": "14",
+          "full_code": "114",
+          "name": "Institute of Modern Languages (IML)",
+          "type": "Institute",
+          "id_prefix_example": "24114",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "15",
+          "full_code": "115",
+          "name": "Sanskrit",
+          "type": "Department",
+          "id_prefix_example": "24115",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "16",
+          "full_code": "116",
+          "name": "Music",
+          "type": "Department",
+          "id_prefix_example": "24116",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "17",
+          "full_code": "117",
+          "name": "Bangladesh Studies",
+          "type": "Department",
+          "id_prefix_example": "24117",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        }
+      ]
+    },
+    {
+      "faculty_code": "2",
+      "faculty_name": "Faculty of Science",
+      "departments": [
+        {
+          "department_code": "01",
+          "full_code": "201",
+          "name": "Physics",
+          "type": "Department",
+          "id_prefix_example": "24201",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "02",
+          "full_code": "202",
+          "name": "Chemistry",
+          "type": "Department",
+          "id_prefix_example": "24202",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "03",
+          "full_code": "203",
+          "name": "Mathematics",
+          "type": "Department",
+          "id_prefix_example": "24203",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "04",
+          "full_code": "204",
+          "name": "Statistics",
+          "type": "Department",
+          "id_prefix_example": "24204",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "08",
+          "full_code": "208",
+          "name": "Institute of Forestry and Environmental Sciences (IFES)",
+          "type": "Institute",
+          "id_prefix_example": "24208",
+          "verified_by": [
+            "voter list"
+          ]
+        },
+        {
+          "department_code": "09",
+          "full_code": "209",
+          "name": "Applied Chemistry and Chemical Engineering (ACCE)",
+          "type": "Department",
+          "id_prefix_example": "24209",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "10",
+          "full_code": "210",
+          "name": "Jamal Nazrul Islam Center for Advanced Research (JNICAR / JNIRCMP)",
+          "type": "Research Centre (MS/MPhil/PhD)",
+          "id_prefix_example": "24210",
+          "verified_by": [
+            "voter list"
+          ],
+          "note": "Small number of IDs (postgraduate/research students)."
+        },
+        {
+          "department_code": "07",
+          "full_code": "207",
+          "name": "Institute of Marine Sciences and Fisheries (legacy code)",
+          "type": "Legacy",
+          "verified_by": [
+            "voter list"
+          ],
+          "note": "Used for students admitted up to session 2017-2018 (IDs like 17207xxx, 18207xxx) before Marine Sciences, Oceanography and Fisheries moved to their own faculty (codes 901/902/903 from session 2018-2019)."
+        }
+      ]
+    },
+    {
+      "faculty_code": "3",
+      "faculty_name": "Faculty of Business Administration",
+      "departments": [
+        {
+          "department_code": "01",
+          "full_code": "301",
+          "name": "Accounting",
+          "type": "Department",
+          "id_prefix_example": "24301",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "02",
+          "full_code": "302",
+          "name": "Management",
+          "type": "Department",
+          "id_prefix_example": "24302",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "03",
+          "full_code": "303",
+          "name": "Finance",
+          "type": "Department",
+          "id_prefix_example": "24303",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "04",
+          "full_code": "304",
+          "name": "Marketing",
+          "type": "Department",
+          "id_prefix_example": "24304",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "05",
+          "full_code": "305",
+          "name": "Human Resource Management",
+          "type": "Department",
+          "id_prefix_example": "24305",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "06",
+          "full_code": "306",
+          "name": "Banking and Insurance",
+          "type": "Department",
+          "id_prefix_example": "24306",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        }
+      ]
+    },
+    {
+      "faculty_code": "4",
+      "faculty_name": "Faculty of Social Sciences",
+      "departments": [
+        {
+          "department_code": "01",
+          "full_code": "401",
+          "name": "Economics",
+          "type": "Department",
+          "id_prefix_example": "24401",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "02",
+          "full_code": "402",
+          "name": "Political Science",
+          "type": "Department",
+          "id_prefix_example": "24402",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "03",
+          "full_code": "403",
+          "name": "Sociology",
+          "type": "Department",
+          "id_prefix_example": "24403",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "04",
+          "full_code": "404",
+          "name": "Public Administration",
+          "type": "Department",
+          "id_prefix_example": "24404",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "05",
+          "full_code": "405",
+          "name": "Anthropology",
+          "type": "Department",
+          "id_prefix_example": "24405",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "06",
+          "full_code": "406",
+          "name": "International Relations",
+          "type": "Department",
+          "id_prefix_example": "24406",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "07",
+          "full_code": "407",
+          "name": "Communication and Journalism",
+          "type": "Department",
+          "id_prefix_example": "24407",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "08",
+          "full_code": "408",
+          "name": "Development Studies",
+          "type": "Department",
+          "id_prefix_example": "24408",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "09",
+          "full_code": "409",
+          "name": "Criminology and Police Science",
+          "type": "Department",
+          "id_prefix_example": "24409",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        }
+      ]
+    },
+    {
+      "faculty_code": "5",
+      "faculty_name": "Faculty of Law",
+      "departments": [
+        {
+          "department_code": "01",
+          "full_code": "501",
+          "name": "Law",
+          "type": "Department",
+          "id_prefix_example": "24501",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        }
+      ]
+    },
+    {
+      "faculty_code": "6",
+      "faculty_name": "Faculty of Biological Sciences",
+      "departments": [
+        {
+          "department_code": "01",
+          "full_code": "601",
+          "name": "Zoology",
+          "type": "Department",
+          "id_prefix_example": "24601",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "02",
+          "full_code": "602",
+          "name": "Botany",
+          "type": "Department",
+          "id_prefix_example": "24602",
+          "verified_by": [
+            "voter list"
+          ]
+        },
+        {
+          "department_code": "03",
+          "full_code": "603",
+          "name": "Geography and Environmental Studies",
+          "type": "Department",
+          "id_prefix_example": "24603",
+          "verified_by": [
+            "voter list"
+          ]
+        },
+        {
+          "department_code": "04",
+          "full_code": "604",
+          "name": "Biochemistry and Molecular Biology",
+          "type": "Department",
+          "id_prefix_example": "24604",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "05",
+          "full_code": "605",
+          "name": "Microbiology",
+          "type": "Department",
+          "id_prefix_example": "24605",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "06",
+          "full_code": "606",
+          "name": "Soil Science",
+          "type": "Department",
+          "id_prefix_example": "24606",
+          "verified_by": [
+            "voter list"
+          ]
+        },
+        {
+          "department_code": "07",
+          "full_code": "607",
+          "name": "Genetic Engineering and Biotechnology",
+          "type": "Department",
+          "id_prefix_example": "24607",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "08",
+          "full_code": "608",
+          "name": "Psychology",
+          "type": "Department",
+          "id_prefix_example": "24608",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "09",
+          "full_code": "609",
+          "name": "Pharmacy",
+          "type": "Department",
+          "id_prefix_example": "24609",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        }
+      ]
+    },
+    {
+      "faculty_code": "7",
+      "faculty_name": "Faculty of Engineering",
+      "departments": [
+        {
+          "department_code": "01",
+          "full_code": "701",
+          "name": "Computer Science and Engineering",
+          "type": "Department",
+          "id_prefix_example": "24701",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "02",
+          "full_code": "702",
+          "name": "Electrical and Electronic Engineering",
+          "type": "Department",
+          "id_prefix_example": "24702",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        }
+      ]
+    },
+    {
+      "faculty_code": "8",
+      "faculty_name": "Faculty of Education",
+      "departments": [
+        {
+          "department_code": "01",
+          "full_code": "801",
+          "name": "Physical Education and Sports Science",
+          "type": "Department",
+          "id_prefix_example": "24801",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        }
+      ],
+      "note": "IER is administratively under this faculty but its student IDs use code 113 (see Faculty of Arts and Humanities)."
+    },
+    {
+      "faculty_code": "9",
+      "faculty_name": "Faculty of Marine Sciences and Fisheries",
+      "departments": [
+        {
+          "department_code": "01",
+          "full_code": "901",
+          "name": "Institute of Marine Sciences (IMS)",
+          "type": "Institute",
+          "id_prefix_example": "24901",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        },
+        {
+          "department_code": "02",
+          "full_code": "902",
+          "name": "Oceanography",
+          "type": "Department",
+          "id_prefix_example": "24902",
+          "verified_by": [
+            "voter list"
+          ],
+          "note": "The cu.ac.bd website incorrectly shows 901 for Oceanography; real student IDs use 902."
+        },
+        {
+          "department_code": "03",
+          "full_code": "903",
+          "name": "Fisheries",
+          "type": "Department",
+          "id_prefix_example": "24903",
+          "verified_by": [
+            "voter list",
+            "hall allotment"
+          ]
+        }
+      ]
+    }
+  ],
+  "no_student_id_code_found": [
+    {
+      "name": "Faculty of Medicine (Paediatrics, Community Ophthalmology)",
+      "reason": "Medical programmes are run through affiliated colleges; no CU-style IDs found."
+    },
+    {
+      "name": "Bureau of Business Research, CUCBA (MBA/EMBA), Social Science Research, English Teachers units",
+      "reason": "Research/service units or separate programmes; no IDs found in voter lists."
+    },
+    {
+      "name": "Resource Management and Entrepreneurship (2024-25 programme)",
+      "reason": "Admission result is a scanned image; not in the 2025 voter lists."
+    },
+    {
+      "name": "Code 109 (Arts), 205-206 (Science), 307-308 (Business)",
+      "reason": "Unused or discontinued codes; no current students found with these."
+    }
+  ],
+  "sources": [
+    {
+      "source": "CUCSU 2025 final voter lists, department-wise (54 PDFs, ~27,000 students)",
+      "url": "https://cucsu.cu.ac.bd/voter-list/",
+      "used_for": "Confirming the 5-digit prefix (session+faculty+department) for every department. Only prefix counts were used; no personal data was saved."
+    },
+    {
+      "source": "Hall Seat Allotment Result, March 2025",
+      "url": "https://cu.ac.bd/wp-content/uploads/2025/03/Hall-Allotment-Result-Mar-25.pdf",
+      "used_for": "Verifying session codes (ID printed beside its session, e.g. 2023-2024 -> 24) and department codes."
+    },
+    {
+      "source": "cu.ac.bd sections API (secid field)",
+      "url": "https://cu.ac.bd/allsections.php?menumapno=28",
+      "used_for": "Official internal faculty/department codes; matches student IDs except the two noted discrepancies."
+    }
+  ]
+}
