@@ -102,3 +102,17 @@ and departments (each showing its student ID code), and a page per teacher with
 the score breakdown, the spread of scores, tags, and colleagues in the same
 department. Teachers under five ratings get a proper explanation instead of a
 blank page.
+
+## 12. The heart of it: anonymous tokens
+
+This is the part that makes honest rating safe.
+
+When a student signs in, their browser creates a secret for each teacher and
+scrambles it. The server signs something it cannot read, using a key belonging to
+one teacher for one term. The student unscrambles the result and keeps it. Later,
+a rating arrives carrying only that token: it proves the student was entitled to
+rate that teacher, and proves nothing else. The server cannot recognise it as
+belonging to anyone.
+
+A token for one teacher is useless for another. The teachers' signing keys are
+kept locked with a master key, and they are destroyed when the term ends.
