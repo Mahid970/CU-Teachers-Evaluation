@@ -167,3 +167,13 @@ Also rating guidelines (rate the teaching, not the person; a hard course is not 
 bad teacher), terms, and a page for teachers who want their details corrected or
 removed. Written comments are not collected at all, because writing style can
 identify the student who wrote them.
+
+## 18. Guarding against abuse
+
+Added limits that slow down automated abuse without recording who anyone is:
+the counter is keyed by a deliberately coarse value that many people share, and
+it expires within the hour.
+
+Also wrote the end-of-term script. It closes rating, destroys the signing keys,
+and deletes the record of who collected tokens — after which not even we could
+work out who took part.
