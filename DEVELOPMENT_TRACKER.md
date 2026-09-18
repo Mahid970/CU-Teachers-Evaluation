@@ -70,3 +70,13 @@ Built the visual style: deep green on warm off-white paper, amber for stars,
 with a printed-magazine feel rather than a typical tech website. No blue
 anywhere, by choice. Added the page frame (header, footer) and a light/dark mode
 switch that remembers the reader's choice on their own device.
+
+## 8. Movement and stars
+
+Added the small animations used across the site — sections fading in as you
+scroll, numbers counting up, bars growing — all on one consistent timing so it
+feels calm rather than busy. Anyone whose device asks for less motion gets none
+of it.
+
+Also built the star control, which works with a mouse, a finger, or the keyboard
+alone, and reads correctly to screen readers.
