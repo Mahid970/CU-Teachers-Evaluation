@@ -24,3 +24,14 @@ Added the two data files collected earlier: every teacher of the university
 (1,036 people across 10 faculties and 64 departments), and the meaning of student
 ID numbers. The ID codes were checked against real student lists, not just the
 university website — the website is wrong in a few places.
+
+## 3. Reading a student ID
+
+Wrote the code that turns a student ID like 24304043 into 'Marketing student,
+session 2023-2024'. This is how the site knows which teachers a student is
+allowed to rate, without asking them anything.
+
+It handles the awkward cases: Philosophy and Islamic History swapped code numbers
+in 2022, Oceanography's real code is not the one on the university website, and
+old marine students share a code so the site asks them which unit they were in.
+Tests cover all of it.
