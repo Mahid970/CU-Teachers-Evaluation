@@ -94,3 +94,11 @@ the rankings.
 Put the homepage together: a headline, the two main buttons, live counts of
 teachers and ratings, the leaderboard, a short explanation of how it works, the
 faculty grid, and a plain list of what the site refuses to store about you.
+
+## 11. The pages for browsing
+
+Added the rest of the public pages: search every teacher, browse faculties
+and departments (each showing its student ID code), and a page per teacher with
+the score breakdown, the spread of scores, tags, and colleagues in the same
+department. Teachers under five ratings get a proper explanation instead of a
+blank page.
