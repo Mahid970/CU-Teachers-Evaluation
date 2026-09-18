@@ -13,6 +13,22 @@ import { RSABSSA } from "@cloudflare/blindrsa-ts";
 
 export const suite = RSABSSA.SHA384.PSS.Randomized();
 
+/**
+ * Signing suite for the server.
+ *
+ * Cloudflare Workers implement the non-standard `RSA-RAW` algorithm, which lets
+ * the blind signature be one native RSA operation. Everywhere else the library
+ * falls back to big-number arithmetic in JavaScript, which costs roughly half a
+ * second per signature — fine for a local dev server, far too slow for a
+ * student waiting on twenty-odd teachers.
+ */
+const onWorkers =
+  typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
+
+export const signingSuite = RSABSSA.SHA384.PSS.Randomized({
+  supportsRSARAW: onWorkers,
+});
+
 export const KEY_ALGORITHM: RsaHashedKeyGenParams = {
   name: "RSA-PSS",
   modulusLength: 2048,
@@ -107,8 +123,19 @@ export async function blindSign(
   privateJwk: JsonWebKey,
   blinded: Uint8Array,
 ): Promise<Uint8Array> {
-  const privateKey = await importPrivateKey(privateJwk);
-  return suite.blindSign(privateKey, blinded);
+  // RSA-RAW keys must be imported under that algorithm name for the fast path.
+  // The stored JWK carries `alg: "PS384"`, which RSA-RAW does not recognise,
+  // so drop it (and the PSS key_ops) for this import only.
+  const privateKey = onWorkers
+    ? await crypto.subtle.importKey(
+        "jwk",
+        { ...privateJwk, alg: undefined, key_ops: ["sign"] },
+        { name: "RSA-RAW", hash: "SHA-384" } as unknown as RsaHashedImportParams,
+        true,
+        ["sign"],
+      )
+    : await importPrivateKey(privateJwk);
+  return signingSuite.blindSign(privateKey, blinded);
 }
 
 export async function verifyToken(

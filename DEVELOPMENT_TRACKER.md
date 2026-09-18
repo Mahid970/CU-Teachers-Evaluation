@@ -198,3 +198,17 @@ Wrote the README: how anonymity works, how to run it, how to deploy it, and
 the routine at the end of each term. Also recorded the rules a future contributor
 must not break — never store anything identifying, never link sign-ins to
 ratings, no login on the rating endpoint, no free-text comments.
+
+## 21. Making sign-in fast
+
+Testing on the real Cloudflare runtime showed sign-in took around nine
+seconds, because the signing library was doing heavy maths in JavaScript. On
+Cloudflare there is a native way to do the same thing, so the site now detects
+where it is running and uses it, and signs all the tokens at once instead of one
+after another.
+
+The same test caught a bug that only appears on the real runtime, where the fast
+path rejected the stored key format. Fixed.
+
+Result: 9 seconds down to 59 milliseconds for a department of twenty teachers,
+with all the security checks still passing.
