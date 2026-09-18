@@ -156,3 +156,14 @@ right after a particular student left the room.
 
 Also added a script that fills the local database with realistic fake ratings, so
 the design can be judged properly during development.
+
+## 17. Saying plainly what we do and don't keep
+
+Wrote the public pages: exactly what is stored and what is not, how anonymity
+works in plain words, and — importantly — what it does not protect against. No
+overstating.
+
+Also rating guidelines (rate the teaching, not the person; a hard course is not a
+bad teacher), terms, and a page for teachers who want their details corrected or
+removed. Written comments are not collected at all, because writing style can
+identify the student who wrote them.
