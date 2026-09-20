@@ -55,9 +55,11 @@ function fail(message: string, status = 400) {
 export async function POST(request: Request) {
   const { env: cfEnv } = await getCloudflareContext({ async: true });
 
-  // A signed-in student needs only a handful of calls; this stops scripted
-  // hammering without recording who called.
-  if (!(await rateLimit(request, "issue", 40)).ok) {
+  // Generous on purpose: a whole campus shares a handful of IP addresses, and
+  // one student now makes about eight calls (one per chunk). The real limit on
+  // issuance is the one-row-per-student rule below, not this; this only stops
+  // scripted hammering.
+  if (!(await rateLimit(request, "issue", 1200)).ok) {
     return fail("Too many attempts. Please try again later.", 429);
   }
 

@@ -40,9 +40,10 @@ export async function POST(request: Request) {
   const { env } = await getCloudflareContext({ async: true });
   const db = env.DB;
 
-  // Tokens already cap how many ratings one student can make; this only slows
-  // down bulk submission attempts from one place.
-  if (!(await rateLimit(request, "rate", 120)).ok) {
+  // Tokens already cap how many ratings one student can make, and a whole
+  // department may be rating from the same campus connection, so this is set
+  // high: it only slows down bulk submission attempts.
+  if (!(await rateLimit(request, "rate", 1200)).ok) {
     return Response.json(
       { error: "Too many ratings from this connection. Please try again later." },
       { status: 429 },

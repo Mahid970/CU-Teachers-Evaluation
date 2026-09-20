@@ -241,3 +241,11 @@ Two changes were needed to make it work properly on the free plan:
 
 The site is live, the login is switched off until Google sign-in is set up, and
 there are no ratings in the real database yet — a clean start.
+
+## 24. Real Google sign-in switched on
+
+Installed the Google sign-in details, so students can now verify with their real
+university account. Also raised the request limits: a whole campus shares a few
+internet addresses, and the batching change means each sign-in makes about eight
+requests, so the old limit would have blocked classmates after a handful of
+students had signed in.
