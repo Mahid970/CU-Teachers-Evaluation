@@ -29,6 +29,7 @@
   --road: #ffffff;
 
   --ease: cubic-bezier(0.2, 0, 0, 1);
+  --star-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.4l6.5-.9z'/%3E%3C/svg%3E");
 }
 
 :root[data-theme="dark"] {
@@ -88,7 +89,6 @@
 
   --font-display: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
   --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-bangla: var(--font-hind-siliguri), var(--font-instrument-sans), sans-serif;
 
   /* 1.25 from a 16px body */
   --text-xs: 0.8rem;
@@ -168,10 +168,6 @@ body {
 
 .prose-measure {
   max-width: 62ch;
-}
-
-.bn {
-  font-family: var(--font-bangla);
 }
 
 @layer components {
@@ -436,6 +432,37 @@ body {
     }
   }
 
+  /* One shared star shape, masked twice: a grey track and a filled overlay.
+     Cheap enough to repeat on a page listing every teacher. */
+  .stars {
+    --star-size: 16px;
+    --star-fill: 0%;
+    position: relative;
+    display: inline-block;
+    width: calc(var(--star-size) * 5);
+    height: var(--star-size);
+    background-color: var(--hairline);
+    -webkit-mask-image: var(--star-mask);
+    mask-image: var(--star-mask);
+    -webkit-mask-size: var(--star-size) var(--star-size);
+    mask-size: var(--star-size) var(--star-size);
+    -webkit-mask-repeat: repeat-x;
+    mask-repeat: repeat-x;
+  }
+
+  .stars-fill {
+    position: absolute;
+    inset: 0;
+    width: var(--star-fill);
+    background-color: var(--score);
+    -webkit-mask-image: var(--star-mask);
+    mask-image: var(--star-mask);
+    -webkit-mask-size: var(--star-size) var(--star-size);
+    mask-size: var(--star-size) var(--star-size);
+    -webkit-mask-repeat: repeat-x;
+    mask-repeat: repeat-x;
+  }
+
   /* ---- The campus map --------------------------------------------------- */
 
   .campus-outline {
@@ -469,6 +496,48 @@ body {
 
   .campus-faculty {
     cursor: pointer;
+  }
+
+  /* The connecting walk between faculties. */
+  .campus-tour {
+    fill: none;
+    stroke: var(--brand);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    opacity: 0;
+  }
+
+  .campus-tour-head {
+    fill: var(--score);
+    opacity: 0;
+    offset-rotate: 0deg;
+  }
+
+  /* A label pinned to its building. */
+  .campus-tip {
+    position: absolute;
+    transform: translate(-50%, -160%);
+    white-space: nowrap;
+    background: var(--surface);
+    border: 1px solid var(--brand);
+    border-radius: 8px;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    pointer-events: none;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .campus-credit {
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.4rem;
+    font-size: 0.65rem;
+    color: var(--ink-muted);
+    opacity: 0.75;
+  }
+
+  .campus-credit:hover {
+    opacity: 1;
   }
 
   .campus-faculty-shape {
@@ -547,44 +616,6 @@ body {
     transform-origin: center;
   }
 
-  /* ---- The ID decoder: the one loud element on the site ----------------- */
-
-  .id-digit {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-variation-settings: "wdth" 120;
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-  }
-
-  /* Each group of digits settles in turn: the one page-load moment. */
-  @keyframes decode-in {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-
-  .decode-part {
-    animation: decode-in 420ms var(--ease) both;
-  }
-
-  .decode-part .decode-bracket {
-    border-color: var(--brand);
-  }
-
-  .id-bracket {
-    border-top: 2px solid var(--hairline);
-    border-left: 2px solid var(--hairline);
-    border-right: 2px solid var(--hairline);
-    border-radius: 4px 4px 0 0;
-    height: 9px;
-  }
-
   /* ---- Bars ------------------------------------------------------------- */
 
   .bar-track {
@@ -644,6 +675,22 @@ body {
   }
 }
 
+@keyframes tour-draw {
+  0% { stroke-dashoffset: 1; opacity: 0; }
+  6% { opacity: 0.55; }
+  62% { stroke-dashoffset: 0; opacity: 0.55; }
+  84% { stroke-dashoffset: 0; opacity: 0; }
+  100% { stroke-dashoffset: 1; opacity: 0; }
+}
+
+@keyframes tour-head {
+  0% { offset-distance: 0%; opacity: 0; }
+  6% { opacity: 1; }
+  62% { offset-distance: 100%; opacity: 1; }
+  70% { offset-distance: 100%; opacity: 0; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
 @keyframes settle-in {
   from {
     opacity: 0;
@@ -697,6 +744,20 @@ body {
   .campus-map a:nth-of-type(5) .campus-faculty { animation-delay: 840ms; }
   .campus-map a:nth-of-type(6) .campus-faculty { animation-delay: 920ms; }
   .campus-map a:nth-of-type(7) .campus-faculty { animation-delay: 1000ms; }
+  .campus-map a:nth-of-type(8) .campus-faculty { animation-delay: 1080ms; }
+  .campus-map a:nth-of-type(9) .campus-faculty { animation-delay: 1160ms; }
+
+  /* Draws itself across the campus, rests, then starts again. */
+  .campus-tour {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: tour-draw 9s linear 1.3s infinite;
+  }
+
+  .campus-tour-head {
+    offset-distance: 0%;
+    animation: tour-head 9s linear 1.3s infinite;
+  }
 
   /* Answers a click: the list re-orders, so it says so. */
   .list-settle > * {

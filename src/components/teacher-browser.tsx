@@ -2,12 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import type { TeacherWithStats } from "@/lib/db";
+import type { TeacherListItem } from "@/lib/db";
 import { FACULTIES } from "@/lib/departments";
 import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
 import { TeacherRow } from "./teacher-card";
 
 export type SortKey = "top" | "low" | "most" | "name";
+
+const PAGE = 40;
 
 const SORTS: { key: SortKey; label: string }[] = [
   { key: "top", label: "Highest rated" },
@@ -31,7 +33,7 @@ export function TeacherBrowser({
   limit,
   emptyNote,
 }: {
-  teachers: TeacherWithStats[];
+  teachers: TeacherListItem[];
   initialSort?: SortKey;
   showSearch?: boolean;
   showFilters?: boolean;
@@ -41,6 +43,11 @@ export function TeacherBrowser({
   const [sort, setSort] = useState<SortKey>(initialSort);
   const [query, setQuery] = useState("");
   const [faculty, setFaculty] = useState("all");
+
+  // Every teacher is searchable straight away, but only a page of them is put
+  // into the document: a thousand rows is a megabyte of HTML for a phone to
+  // build before it can show anything.
+  const [shown, setShown] = useState(limit ?? PAGE);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -56,23 +63,26 @@ export function TeacherBrowser({
 
     // Ranked sorts only consider teachers past the publication threshold, so a
     // teacher with two ratings never appears as "lowest rated".
-    if (sort !== "name") list = list.filter((t) => t.stats !== null);
+    if (sort !== "name") list = list.filter((t) => t.n > 0);
 
     return [...list]
       .sort((a, b) => {
         switch (sort) {
           case "top":
-            return (b.stats?.bayesian_score ?? 0) - (a.stats?.bayesian_score ?? 0);
+            return b.score - a.score;
           case "low":
-            return (a.stats?.bayesian_score ?? 0) - (b.stats?.bayesian_score ?? 0);
+            return a.score - b.score;
           case "most":
-            return (b.stats?.n ?? 0) - (a.stats?.n ?? 0);
+            return b.n - a.n;
           default:
             return a.name.localeCompare(b.name);
         }
       })
       .slice(0, limit ?? undefined);
   }, [teachers, query, faculty, sort, limit]);
+
+  const page = visible.slice(0, shown);
+  const remaining = visible.length - page.length;
 
   const ranked = sort === "top" && !query && faculty === "all";
 
@@ -88,7 +98,10 @@ export function TeacherBrowser({
             <input
               type="search"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setShown(limit ?? PAGE);
+              }}
               placeholder="Search by name or department"
               className="field pl-9"
               aria-label="Search teachers"
@@ -101,7 +114,10 @@ export function TeacherBrowser({
             <button
               key={s.key}
               type="button"
-              onClick={() => setSort(s.key)}
+              onClick={() => {
+                setSort(s.key);
+                setShown(limit ?? PAGE);
+              }}
               aria-pressed={sort === s.key}
               className="segment"
             >
@@ -115,7 +131,10 @@ export function TeacherBrowser({
             <span className="sr-only">Filter by faculty</span>
             <select
               value={faculty}
-              onChange={(e) => setFaculty(e.target.value)}
+              onChange={(e) => {
+                setFaculty(e.target.value);
+                setShown(limit ?? PAGE);
+              }}
               className="field sm:w-auto"
             >
               <option value="all">All faculties</option>
@@ -145,13 +164,26 @@ export function TeacherBrowser({
       ) : (
         /* Keyed on the current ordering, so changing sort or filter replays the
            settle: the list visibly answers the click instead of blinking. */
-        <ul key={`${sort}-${faculty}`} className="list-settle mt-4 space-y-2">
-          {visible.map((t, i) => (
-            <li key={t.id}>
-              <TeacherRow teacher={t} rank={ranked ? i + 1 : undefined} />
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul key={`${sort}-${faculty}`} className="list-settle mt-4 space-y-2">
+            {page.map((t, i) => (
+              <li key={t.id}>
+                <TeacherRow teacher={t} rank={ranked ? i + 1 : undefined} />
+              </li>
+            ))}
+          </ul>
+
+          {remaining > 0 && (
+            <button
+              type="button"
+              onClick={() => setShown((n) => n + PAGE)}
+              className="btn btn-quiet mt-4 w-full"
+            >
+              Show {Math.min(remaining, PAGE)} more
+              <span className="numerals text-ink-muted">({remaining} left)</span>
+            </button>
+          )}
+        </>
       )}
     </div>
   );

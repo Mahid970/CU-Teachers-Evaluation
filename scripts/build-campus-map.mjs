@@ -85,10 +85,13 @@ const spanX = (maxLon - minLon) * kx;
 const spanY = maxLat - minLat;
 const HEIGHT = Math.round((spanY / spanX) * WIDTH);
 
-const project = ([lon, lat]) => [
-  ((lon - minLon) * kx * WIDTH) / spanX,
-  HEIGHT - ((lat - minLat) * HEIGHT) / spanY,
-];
+// The campus is taller than it is wide, which wastes a landscape hero, so the
+// whole drawing is turned a quarter turn clockwise: (x, y) -> (H - y, x).
+const project = ([lon, lat]) => {
+  const x = ((lon - minLon) * kx * WIDTH) / spanX;
+  const y = HEIGHT - ((lat - minLat) * HEIGHT) / spanY;
+  return [HEIGHT - y, x];
+};
 
 const round = (n) => Math.round(n * 10) / 10;
 
@@ -120,14 +123,30 @@ const area = (points) => {
 /* ---- faculties, matched to buildings OSM actually names ---------------- */
 
 const FACULTY_MATCHES = [
-  { key: "arts", label: "Arts and Humanities", names: ["Faculty of Arts"] },
-  { key: "science", label: "Science", names: ["Faculty of Sciences"] },
-  { key: "business", label: "Business Administration", names: ["Faculty of Commerce"] },
-  { key: "social", label: "Social Sciences", names: ["Faculty of Social Sciences"] },
-  { key: "law", label: "Law", names: ["Faculty of Law"] },
-  { key: "engineering", label: "Engineering", names: ["Dean Office, Faculty of Engineering"] },
-  { key: "marine", label: "Marine Sciences and Fisheries", names: ["FMSF New Building"] },
+  { key: "arts", label: "Arts and Humanities", href: "/faculties#arts", names: ["Faculty of Arts"] },
+  { key: "science", label: "Science", href: "/faculties#science", names: ["Faculty of Sciences"] },
+  { key: "business", label: "Business Administration", href: "/faculties#business", names: ["Faculty of Commerce"] },
+  { key: "social", label: "Social Sciences", href: "/faculties#social", names: ["Faculty of Social Sciences"] },
+  { key: "law", label: "Law", href: "/faculties#law", names: ["Faculty of Law"] },
+  { key: "engineering", label: "Engineering", href: "/faculties#engineering", names: ["Dean Office, Faculty of Engineering"] },
+  { key: "marine", label: "Marine Sciences and Fisheries", href: "/faculties#marine", names: ["FMSF New Building"] },
+  { key: "ifes", label: "Forestry and Environmental Sciences", href: "/d/ifes", names: ["Institute of Forestry and Environmental Sciences"] },
 ];
+
+/**
+ * Biological Sciences has no building of its own in the map data. What OSM does
+ * name is the road and the pond the faculty is named after, so the marker goes
+ * at the middle of those — derived from real features, not guessed at.
+ */
+const DERIVED = [
+  {
+    key: "biological",
+    label: "Biological Sciences",
+    href: "/faculties#biological",
+    from: ["Faculty of Biological Sciences Road", "Biological Science Faculty Pond"],
+  },
+];
+const derivedPoints = new Map(DERIVED.map((d) => [d.key, []]));
 
 const LANDMARKS = [
   { match: "চট্টগ্রাম বিশ্ববিদ্যালয় রেলওয়ে স্টেশন", label: "Shuttle station" },
@@ -160,6 +179,10 @@ for (const el of features.elements) {
 
   const geometry = el.geometry ?? [];
   if (geometry.length < 3) continue;
+
+  for (const d of DERIVED) {
+    if (d.from.includes(tags.name)) derivedPoints.get(d.key).push(centroid(geometry));
+  }
 
   // Landmarks only have to sit inside the drawn frame. The campus outline is
   // irregular and excludes places students plainly think of as campus — the
@@ -196,13 +219,25 @@ for (const el of features.elements) {
 
     if (faculty) {
       const [cx, cy] = project(centroid(geometry)).map(round);
-      faculties.push({ key: faculty.key, label: faculty.label, d, x: cx, y: cy });
+      faculties.push({ key: faculty.key, label: faculty.label, href: faculty.href, d, x: cx, y: cy });
     } else if (size > 4) {
       // Only the very smallest sheds are dropped: the rest are what makes the
       // shape read as a campus rather than a scatter of blocks.
       buildings.push(d);
     }
   }
+}
+
+for (const d of DERIVED) {
+  const points = derivedPoints.get(d.key);
+  if (!points.length) {
+    console.warn(`  ! no reference features found for ${d.key}`);
+    continue;
+  }
+  const lon = points.reduce((sum, p) => sum + p[0], 0) / points.length;
+  const lat = points.reduce((sum, p) => sum + p[1], 0) / points.length;
+  const [x, y] = project([lon, lat]).map(round);
+  faculties.push({ key: d.key, label: d.label, href: d.href, x, y });
 }
 
 const outlinePath = toPath(outline.geometry, true);
@@ -212,16 +247,16 @@ const outlinePath = toPath(outline.geometry, true);
 const numbers = (d) => d.match(/-?\d+(\.\d+)?/g).map(Number);
 const xs = [];
 const ys = [];
-for (const d of [...buildings, ...water, ...faculties.map((f) => f.d)]) {
+for (const d of [...buildings, ...water, ...faculties.map((f) => f.d).filter(Boolean)]) {
   const n = numbers(d);
   for (let i = 0; i < n.length; i += 2) {
     xs.push(n[i]);
     ys.push(n[i + 1]);
   }
 }
-for (const l of landmarks) {
-  xs.push(l.x);
-  ys.push(l.y);
+for (const point of [...landmarks, ...faculties]) {
+  xs.push(point.x);
+  ys.push(point.y);
 }
 
 const padX = (Math.max(...xs) - Math.min(...xs)) * 0.06;
@@ -230,6 +265,40 @@ const viewX = Math.round(Math.min(...xs) - padX);
 const viewY = Math.round(Math.min(...ys) - padY);
 const viewW = Math.round(Math.max(...xs) - Math.min(...xs) + padX * 2);
 const viewH = Math.round(Math.max(...ys) - Math.min(...ys) + padY * 2);
+
+// Nearest neighbour from the westernmost marker: a route that reads as a walk
+// across campus rather than a tangle of crossing lines.
+const tourOrder = [];
+const remaining = [...faculties];
+let cursor = remaining.reduce((a, b) => (a.x <= b.x ? a : b));
+remaining.splice(remaining.indexOf(cursor), 1);
+tourOrder.push(cursor);
+while (remaining.length) {
+  let best = 0;
+  let bestDistance = Infinity;
+  remaining.forEach((f, i) => {
+    const distance = Math.hypot(f.x - cursor.x, f.y - cursor.y);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = i;
+    }
+  });
+  cursor = remaining.splice(best, 1)[0];
+  tourOrder.push(cursor);
+}
+
+// Each leg bows outwards slightly, so the line arcs between buildings.
+let tour = `M${tourOrder[0].x} ${tourOrder[0].y}`;
+for (let i = 1; i < tourOrder.length; i += 1) {
+  const a = tourOrder[i - 1];
+  const b = tourOrder[i];
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const bow = 0.14;
+  tour += `Q${round(mx - dy * bow)} ${round(my + dx * bow)} ${b.x} ${b.y}`;
+}
 
 const file = `// Generated by scripts/build-campus-map.mjs — do not edit by hand.
 // Map data © OpenStreetMap contributors (ODbL). Every shape here is real
@@ -248,10 +317,15 @@ export const CAMPUS_BUILDINGS: string[] = ${JSON.stringify(buildings)};
 export type CampusFaculty = {
   key: string;
   label: string;
-  d: string;
+  href: string;
+  /** Absent when OSM names no building for that faculty. */
+  d?: string;
   x: number;
   y: number;
 };
+
+/** A route visiting every faculty, used for the connecting line. */
+export const CAMPUS_TOUR = ${JSON.stringify(tour)};
 
 export const CAMPUS_FACULTIES: CampusFaculty[] = ${JSON.stringify(faculties, null, 2)};
 
@@ -263,11 +337,13 @@ export const CAMPUS_LANDMARKS: CampusLandmark[] = ${JSON.stringify(landmarks, nu
 const out = resolve(import.meta.dirname, "../src/lib/campus-map.ts");
 writeFileSync(out, file);
 
+
 console.log(`\nWrote ${out}`);
 console.log(`  viewBox      ${viewX} ${viewY} ${viewW} ${viewH}`);
 console.log(`  buildings    ${buildings.length}`);
 console.log(`  water        ${water.length}`);
 console.log(`  roads        ${roads.length}`);
 console.log(`  faculties    ${faculties.length} (${faculties.map((f) => f.key).join(", ")})`);
+console.log(`  tour         ${tourOrder.length} stops: ${tourOrder.map((f) => f.key).join(" → ")}`);
 console.log(`  landmarks    ${landmarks.length} (${landmarks.map((l) => l.label).join(", ")})`);
 console.log(`  size         ${(file.length / 1024).toFixed(0)} KB`);

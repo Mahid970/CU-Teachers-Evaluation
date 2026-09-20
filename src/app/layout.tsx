@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, Hind_Siliguri, Instrument_Sans } from "next/font/google";
+import { Archivo, Instrument_Sans } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
@@ -16,11 +16,8 @@ const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
 });
 
-const hindSiliguri = Hind_Siliguri({
-  variable: "--font-hind-siliguri",
-  subsets: ["bengali"],
-  weight: ["400", "500", "600"],
-});
+// Bangla (Hind Siliguri) is added back with the translation; loading a Bengali
+// face nobody reads yet only slows the first paint.
 
 export const metadata: Metadata = {
   title: {
@@ -39,7 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       // Tells Next the smooth scrolling is deliberate, so route changes jump
       // instead of gliding the whole page to the top.
       data-scroll-behavior="smooth"
-      className={`${archivo.variable} ${instrumentSans.variable} ${hindSiliguri.variable} h-full antialiased`}
+      className={`${archivo.variable} ${instrumentSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-ground text-ink">
         <SiteHeader />

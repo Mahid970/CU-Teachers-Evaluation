@@ -349,3 +349,30 @@ drop onto it.
 
 The token demo was not thrown away: it moved to the privacy page, under a
 heading inviting you to test the claim, which is where that argument belongs.
+
+## 29. Map refinements, and making the site fast
+
+**The map.** Turned it on its side so it fills the width, dropped the text bar
+under it (the faculty name now appears on the building you point at), and added
+the two faculties that were missing: Forestry, which the map data names, and
+Biological Sciences, which it does not — that marker sits at the middle of the
+road and pond named after the faculty, so it is still placed from real features
+rather than guessed. A line now travels the campus continuously, connecting all
+nine faculties one after another. The student ID explainer has been removed from
+the hero.
+
+**Speed.** The site was slow, and the teacher directory was the reason.
+
+- **Star ratings were the biggest single cost.** Each star was drawn as its own
+  icon, ten per row, a thousand rows — several megabytes of identical shapes.
+  They are now one small shape reused by the browser.
+- **Pages are cached.** Every visit was rebuilding the same page from the
+  database. Rendered pages are now kept at Cloudflare's edge.
+- **The directory only builds what you can see** — forty teachers at a time,
+  with a button for more. Searching and sorting still covers all 1,019 instantly.
+- **Each row carries less.** The list was shipping fields only a teacher's own
+  page needs.
+- **Dropped the Bengali font** until there is Bangla text to set in it.
+
+The teacher directory went from 1.2 MB to 280 KB, and from about 1.2 seconds to
+a quarter of a second before the page starts arriving.

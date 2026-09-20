@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { TeacherBrowser } from "@/components/teacher-browser";
-import { IdDecoder } from "@/components/id-decoder";
 import { CountUp } from "@/components/count-up";
 import { CampusMap } from "@/components/campus-map";
 import { FACULTIES } from "@/lib/departments";
@@ -24,9 +23,11 @@ export default async function HomePage() {
     byFaculty.set(d.faculty_key, entry);
   }
 
-  const teachersByFaculty = Object.fromEntries(
+  const mapCounts: Record<string, number> = Object.fromEntries(
     [...byFaculty].map(([key, entry]) => [key, entry.teachers]),
   );
+  // The map marks Forestry by name, so it shows that institute's own count.
+  mapCounts.ifes = deptSummaries.find((d) => d.slug === "ifes")?.teachers ?? 0;
 
   return (
     <>
@@ -50,14 +51,10 @@ export default async function HomePage() {
                 Browse all teachers
               </Link>
             </div>
-
-            <div className="mt-10 border-t border-hairline pt-6">
-              <IdDecoder />
-            </div>
           </div>
 
           <div className="lg:col-span-6">
-            <CampusMap counts={teachersByFaculty} />
+            <CampusMap counts={mapCounts} />
           </div>
         </div>
 

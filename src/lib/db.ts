@@ -34,6 +34,38 @@ export type StatsRow = {
   tag_counts: string;
 };
 
+/**
+ * What a list row actually needs. Sending the full record for a thousand
+ * teachers made the directory a megabyte of HTML for a phone to parse.
+ */
+export type TeacherListItem = {
+  id: string;
+  name: string;
+  designation: string;
+  dept_name: string;
+  faculty_key: string;
+  /** Just the file name; the prefix is added when rendering. */
+  photo: string | null;
+  n: number;
+  score: number;
+};
+
+export const PHOTO_PREFIX = "https://cu.ac.bd/assets/image/faculty_staff_users/";
+
+function toListItem(row: JoinedRow): TeacherListItem {
+  const published = (row.n ?? 0) >= MIN_RATINGS_TO_SHOW;
+  return {
+    id: row.id,
+    name: row.name,
+    designation: row.designation,
+    dept_name: row.dept_name,
+    faculty_key: row.faculty_key,
+    photo: row.photo_url ? row.photo_url.replace(PHOTO_PREFIX, "") : null,
+    n: published ? row.n! : 0,
+    score: published ? row.bayesian_score! : 0,
+  };
+}
+
 export type TeacherWithStats = TeacherRow & {
   stats: (Omit<StatsRow, "distribution" | "tag_counts"> & {
     distribution: number[];
@@ -95,30 +127,56 @@ export async function getTeacher(id: string): Promise<TeacherWithStats | null> {
   return row ? hydrate(row) : null;
 }
 
-export async function getTeachersByDept(slug: string): Promise<TeacherWithStats[]> {
-  const { results } = await (await db())
-    .prepare(`${TEACHER_SELECT} AND t.dept_slug = ?1 ORDER BY t.sort_order`)
-    .bind(slug)
-    .all<JoinedRow>();
-  return results.map(hydrate);
-}
-
-export async function getAllTeachers(): Promise<TeacherWithStats[]> {
-  const { results } = await (await db())
-    .prepare(`${TEACHER_SELECT} ORDER BY t.name`)
-    .all<JoinedRow>();
-  return results.map(hydrate);
-}
-
-/** Ranked teachers for the home page leaderboard and the directory. */
-export async function getRankedTeachers(limit = 50): Promise<TeacherWithStats[]> {
+export async function getTeachersByDept(slug: string): Promise<TeacherListItem[]> {
   const { results } = await (await db())
     .prepare(
-      `${TEACHER_SELECT} AND s.n >= ?1 ORDER BY s.bayesian_score DESC, s.n DESC LIMIT ?2`,
+      `SELECT t.id, t.name, t.designation, t.photo_url,
+              d.name AS dept_name, d.faculty_key,
+              s.n, s.bayesian_score
+       FROM teachers t
+       JOIN departments d ON d.slug = t.dept_slug
+       LEFT JOIN teacher_stats s ON s.teacher_id = t.id AND s.term_id = 'all'
+       WHERE t.active = 1 AND t.dept_slug = ?1
+       ORDER BY t.sort_order`,
+    )
+    .bind(slug)
+    .all<JoinedRow>();
+  return results.map(toListItem);
+}
+
+export async function getAllTeachers(): Promise<TeacherListItem[]> {
+  const { results } = await (await db())
+    .prepare(
+      `SELECT t.id, t.name, t.designation, t.photo_url,
+              d.name AS dept_name, d.faculty_key,
+              s.n, s.bayesian_score
+       FROM teachers t
+       JOIN departments d ON d.slug = t.dept_slug
+       LEFT JOIN teacher_stats s ON s.teacher_id = t.id AND s.term_id = 'all'
+       WHERE t.active = 1
+       ORDER BY t.name`,
+    )
+    .all<JoinedRow>();
+  return results.map(toListItem);
+}
+
+/** Ranked teachers for the home page leaderboard. */
+export async function getRankedTeachers(limit = 50): Promise<TeacherListItem[]> {
+  const { results } = await (await db())
+    .prepare(
+      `SELECT t.id, t.name, t.designation, t.photo_url,
+              d.name AS dept_name, d.faculty_key,
+              s.n, s.bayesian_score
+       FROM teachers t
+       JOIN departments d ON d.slug = t.dept_slug
+       JOIN teacher_stats s ON s.teacher_id = t.id AND s.term_id = 'all'
+       WHERE t.active = 1 AND s.n >= ?1
+       ORDER BY s.bayesian_score DESC, s.n DESC
+       LIMIT ?2`,
     )
     .bind(MIN_RATINGS_TO_SHOW, limit)
     .all<JoinedRow>();
-  return results.map(hydrate);
+  return results.map(toListItem);
 }
 
 export type SiteCounts = {

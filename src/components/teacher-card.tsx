@@ -1,7 +1,7 @@
 import { ViewTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { TeacherWithStats } from "@/lib/db";
+import { PHOTO_PREFIX, type TeacherListItem } from "@/lib/db";
 import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
 import { StarRow } from "./stars";
 
@@ -10,11 +10,13 @@ export function TeacherAvatar({
   size = 56,
   morphId,
 }: {
-  teacher: Pick<TeacherWithStats, "name" | "photo_url">;
+  teacher: { name: string; photo_url?: string | null; photo?: string | null };
   size?: number;
   /** Set on both the list row and the teacher page to morph between them. */
   morphId?: string;
 }) {
+  const photo =
+    teacher.photo_url ?? (teacher.photo ? `${PHOTO_PREFIX}${teacher.photo}` : null);
   const initials = teacher.name
     .replace(/^(Dr|Prof|Professor|Mr|Ms|Mrs)\.?\s+/i, "")
     .split(/\s+/)
@@ -28,9 +30,9 @@ export function TeacherAvatar({
       className="avatar relative shrink-0 overflow-hidden rounded-lg bg-brand-wash"
       style={{ width: size, height: size }}
     >
-      {teacher.photo_url ? (
+      {photo ? (
         <Image
-          src={teacher.photo_url}
+          src={photo}
           alt=""
           width={size}
           height={size}
@@ -66,9 +68,10 @@ export function TeacherRow({
   teacher,
   rank,
 }: {
-  teacher: TeacherWithStats;
+  teacher: TeacherListItem;
   rank?: number;
 }) {
+  const rated = teacher.n > 0;
   return (
     <Link href={`/t/${teacher.id}`} className="row-link flex items-center gap-4 p-4">
       {rank !== undefined && (
@@ -89,18 +92,18 @@ export function TeacherRow({
       </div>
 
       <div className="shrink-0 text-right">
-        {teacher.stats ? (
+        {rated ? (
           <>
             {/* In a ranked list, one decimal ties constantly and the order
                 looks arbitrary, so show the precision the rank is based on. */}
             <p className="score text-2xl">
-              {teacher.stats.bayesian_score.toFixed(rank === undefined ? 1 : 2)}
+              {teacher.score.toFixed(rank === undefined ? 1 : 2)}
             </p>
             <div className="mt-1 flex justify-end">
-              <StarRow value={teacher.stats.bayesian_score} size={13} showValue={false} />
+              <StarRow value={teacher.score} size={13} showValue={false} />
             </div>
             <p className="numerals mt-1 text-xs text-ink-muted">
-              {teacher.stats.n} rating{teacher.stats.n === 1 ? "" : "s"}
+              {teacher.n} rating{teacher.n === 1 ? "" : "s"}
             </p>
           </>
         ) : (

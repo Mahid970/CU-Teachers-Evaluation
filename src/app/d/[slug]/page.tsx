@@ -31,10 +31,10 @@ export default async function DepartmentPage({ params }: PageProps<"/d/[slug]">)
 
   const faculty = FACULTY_BY_KEY[dept.faculty];
   const teachers = await getTeachersByDept(slug);
-  const rated = teachers.filter((t) => t.stats);
+  const rated = teachers.filter((t) => t.n > 0);
   const deptAverage =
     rated.length > 0
-      ? rated.reduce((sum, t) => sum + (t.stats?.avg_overall ?? 0), 0) / rated.length
+      ? rated.reduce((sum, t) => sum + t.score, 0) / rated.length
       : null;
 
   return (

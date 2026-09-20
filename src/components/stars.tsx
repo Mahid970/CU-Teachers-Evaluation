@@ -4,7 +4,14 @@ import { useId, useState } from "react";
 import { Star } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
-/** Read-only star row. Always paired with the numeral, never colour alone. */
+/**
+ * Read-only star row, drawn with a CSS mask.
+ *
+ * Icon components look tidy but cost a full SVG path per star: on a page
+ * listing a thousand teachers that was several megabytes of identical markup.
+ * This is two elements and one shared mask, and always carries the numeral so
+ * the meaning never rests on the shape alone.
+ */
 export function StarRow({
   value,
   size = 16,
@@ -16,33 +23,17 @@ export function StarRow({
   showValue?: boolean;
   className?: string;
 }) {
-  const rounded = Math.round(value * 2) / 2;
+  const filled = Math.max(0, Math.min(100, (Math.round(value * 2) / 2 / 5) * 100));
   return (
     <span className={`inline-flex items-center gap-1.5 ${className}`}>
-      <span className="inline-flex" aria-hidden="true">
-        {[1, 2, 3, 4, 5].map((i) => {
-          const fill = Math.max(0, Math.min(1, rounded - i + 1));
-          return (
-            <span key={i} className="relative" style={{ width: size, height: size }}>
-              <Star size={size} strokeWidth={1.5} className="absolute inset-0 text-hairline" />
-              <span
-                className="absolute inset-0 overflow-hidden"
-                style={{ width: `${fill * 100}%` }}
-              >
-                <Star
-                  size={size}
-                  strokeWidth={1.5}
-                  className="text-score"
-                  fill="var(--score)"
-                />
-              </span>
-            </span>
-          );
-        })}
+      <span
+        className="stars"
+        style={{ "--star-size": `${size}px`, "--star-fill": `${filled}%` } as React.CSSProperties}
+        aria-hidden="true"
+      >
+        <span className="stars-fill" />
       </span>
-      {showValue && (
-        <span className="numerals text-sm font-semibold">{value.toFixed(1)}</span>
-      )}
+      {showValue && <span className="numerals text-sm font-semibold">{value.toFixed(1)}</span>}
       <span className="sr-only">{value.toFixed(1)} out of 5</span>
     </span>
   );

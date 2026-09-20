@@ -222,8 +222,8 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
                           {c.designation}
                         </span>
                       </span>
-                      {c.stats && (
-                        <span className="score text-lg">{c.stats.avg_overall.toFixed(1)}</span>
+                      {c.n > 0 && (
+                        <span className="score text-lg">{c.score.toFixed(1)}</span>
                       )}
                     </Link>
                   </li>

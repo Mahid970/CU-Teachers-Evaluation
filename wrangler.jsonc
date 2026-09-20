@@ -26,6 +26,11 @@
     {
       "binding": "RATE_LIMIT",
       "id": "09c35a7258eb4fb6a376adfa5eca3851"
+    },
+    {
+      // Rendered pages, cached at the edge by OpenNext.
+      "binding": "NEXT_INC_CACHE_KV",
+      "id": "e83bdd5b4ec74be5a608a5e85801ade2"
     }
   ],
   "triggers": {
