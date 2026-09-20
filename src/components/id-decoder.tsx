@@ -22,7 +22,7 @@ const PARTS = [
 
 export function IdDecoder() {
   return (
-    <div className="panel p-5 sm:p-7">
+    <div>
       <div className="flex justify-center gap-1.5 sm:gap-2">
         {PARTS.map((part, i) => (
           <div
@@ -30,7 +30,7 @@ export function IdDecoder() {
             className="decode-part"
             style={{ animationDelay: `${300 + i * 220}ms` }}
           >
-            <div className="id-digit text-center text-[clamp(1.9rem,7vw,3.2rem)]">
+            <div className="id-digit text-center text-[clamp(1.6rem,6vw,2.5rem)]">
               {part.digits}
             </div>
             <div className="id-bracket decode-bracket mt-2" />
@@ -44,12 +44,8 @@ export function IdDecoder() {
         ))}
       </div>
 
-      <hr className="hairline my-5" />
-
-      <p className="text-sm text-ink-muted">
-        Your university account proves the number is yours. We read it once to
-        find your department, then throw it away — it is never written down, and
-        no rating can be traced back to it.
+      <p className="mt-4 text-center text-sm text-ink-muted">
+        Read once to find your department, then thrown away.
       </p>
     </div>
   );

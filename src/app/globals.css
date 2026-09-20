@@ -22,6 +22,7 @@
   --score: #c8891c;
   --score-track: #e6e2d6;
   --low: #a33a2b;
+  --token: #e4e7e1;
 
   --ease: cubic-bezier(0.2, 0, 0, 1);
 }
@@ -39,6 +40,7 @@
   --score: #e0a84a;
   --score-track: #2a2b25;
   --low: #d4785f;
+  --token: #232c27;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -55,6 +57,7 @@
     --score: #e0a84a;
     --score-track: #2a2b25;
     --low: #d4785f;
+    --token: #232c27;
   }
 }
 
@@ -87,8 +90,13 @@
   --text-5xl: 3.815rem;
 }
 
-* {
-  border-color: var(--hairline);
+/* Base sits in its own layer: unlayered rules beat layered ones, so a global
+   `*` border colour out here would quietly override every component's hover
+   and selected state. */
+@layer base {
+  * {
+    border-color: var(--hairline);
+  }
 }
 
 html {
@@ -414,6 +422,29 @@ body {
     :root:not([data-theme="light"]) .theme-toggle .icon-to-light {
       display: block;
     }
+  }
+
+  /* ---- The token pool --------------------------------------------------- */
+
+  /* Identical by design: once a token is spent, nothing about it distinguishes
+     one student from another. */
+  .token {
+    position: absolute;
+    border-radius: 8px;
+    background: var(--token);
+    border: 1px solid var(--hairline);
+    transition:
+      transform 680ms var(--ease),
+      background-color 220ms var(--ease),
+      border-color 220ms var(--ease),
+      box-shadow 220ms var(--ease);
+  }
+
+  .token[data-mine="true"] {
+    background: var(--brand);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 4px var(--brand-wash);
+    transform-origin: center;
   }
 
   /* ---- The ID decoder: the one loud element on the site ----------------- */

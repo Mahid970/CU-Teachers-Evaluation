@@ -303,3 +303,27 @@ of each block's height, which never completes for a block taller than the
 screen. Headings sat at about seventy percent opacity for as long as you looked
 at them. They now finish after a fixed amount of scrolling, whatever the size of
 the block.
+
+## 27. A promise you can test yourself
+
+Replaced the right side of the homepage with something you can actually try.
+
+The site's central claim is that nobody can connect a rating back to the student
+who gave it. That is easy to write and hard to believe, so now you can test it:
+the panel shows a pool of rating tokens, you press a button to mark the one that
+is yours, and then the pool shuffles. The mark dissolves while everything is
+still moving, and you are left unable to say which one was yours — which is
+exactly the position the site itself is in.
+
+It is not a trick of the animation. Once a token has been signed and spent,
+there genuinely is nothing in it that points back to a person, so following it
+is impossible for us too.
+
+Above it, a short line still shows a student ID being split into session,
+faculty, department and serial, with a note that it is read once and thrown
+away. The two halves of the promise now sit together: this is what we read, and
+this is where your rating goes.
+
+A cascade bug turned up while building it. A global border rule sat outside the
+style layers, and rules outside a layer quietly beat rules inside one, so every
+selected and hover border on the site was being overridden without any error.

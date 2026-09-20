@@ -2,6 +2,7 @@ import Link from "next/link";
 import { TeacherBrowser } from "@/components/teacher-browser";
 import { IdDecoder } from "@/components/id-decoder";
 import { CountUp } from "@/components/count-up";
+import { TokenPool } from "@/components/token-pool";
 import { FACULTIES } from "@/lib/departments";
 import { getDepartmentSummaries, getRankedTeachers, getSiteCounts } from "@/lib/db";
 import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
@@ -49,7 +50,11 @@ export default async function HomePage() {
           </div>
 
           <div className="lg:col-span-6">
-            <IdDecoder />
+            <div className="panel p-5 sm:p-6">
+              <IdDecoder />
+              <hr className="hairline my-6" />
+              <TokenPool />
+            </div>
           </div>
         </div>
 
