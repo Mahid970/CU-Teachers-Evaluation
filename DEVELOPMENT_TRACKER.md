@@ -327,3 +327,25 @@ this is where your rating goes.
 A cascade bug turned up while building it. A global border rule sat outside the
 style layers, and rules outside a layer quietly beat rules inside one, so every
 selected and hover border on the site was being overridden without any error.
+
+## 28. A map of the campus
+
+Replaced the hero with a map of the University of Chittagong.
+
+The previous idea was clever but cold — a pool of tokens students have no
+feeling about. This is the place they actually walk: the lakes, the roads
+bending around the hills, the faculty buildings, the shuttle station.
+
+Every shape on it is real. The campus outline, 287 buildings, 46 lakes and ponds
+and 65 roads come from OpenStreetMap, and a faculty is only marked where the map
+data actually names that building — nothing is placed by guesswork. Seven
+faculty buildings are named there: Arts, Science, Commerce (Business), Social
+Sciences, Law, Engineering and Marine Sciences.
+
+Point at a building and it tells you the faculty and how many teachers it has.
+Click it and you land on that faculty's departments. The map draws itself in
+once when the page loads — water, then roads, then buildings, then the markers
+drop onto it.
+
+The token demo was not thrown away: it moved to the privacy page, under a
+heading inviting you to test the claim, which is where that argument belongs.

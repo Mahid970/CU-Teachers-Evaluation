@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { TokenPool } from "@/components/token-pool";
 import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
 
 export const metadata: Metadata = {
@@ -64,6 +65,15 @@ export default function PrivacyPage() {
           </li>
         ))}
       </ol>
+
+      <div className="panel mt-10 p-5 sm:p-6">
+        <h3 className="display text-xl">See for yourself</h3>
+        <p className="prose-measure mt-2 mb-5 text-sm text-ink-muted">
+          Every rating is carried by a token the server signed without being able
+          to read it. Mark one as yours, shuffle the pool, and try to follow it.
+        </p>
+        <TokenPool />
+      </div>
 
       <h2 className="display mt-14 text-3xl">Two more protections</h2>
       <p className="mt-4 text-ink-muted">

@@ -23,6 +23,10 @@
   --score-track: #e6e2d6;
   --low: #a33a2b;
   --token: #e4e7e1;
+  --campus: #edf0ea;
+  --water: #a9c6b9;
+  --building: #c6ccc2;
+  --road: #ffffff;
 
   --ease: cubic-bezier(0.2, 0, 0, 1);
 }
@@ -41,6 +45,10 @@
   --score-track: #2a2b25;
   --low: #d4785f;
   --token: #232c27;
+  --campus: #1b231f;
+  --water: #26473d;
+  --building: #39433d;
+  --road: #4c564f;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -58,6 +66,10 @@
     --score-track: #2a2b25;
     --low: #d4785f;
     --token: #232c27;
+    --campus: #1b231f;
+    --water: #26473d;
+    --building: #39433d;
+    --road: #4c564f;
   }
 }
 
@@ -424,6 +436,94 @@ body {
     }
   }
 
+  /* ---- The campus map --------------------------------------------------- */
+
+  .campus-outline {
+    fill: var(--campus);
+    stroke: var(--hairline);
+    stroke-width: 2;
+  }
+
+  .campus-water {
+    fill: var(--water);
+    stroke: none;
+  }
+
+  .campus-road {
+    fill: none;
+    stroke: var(--road);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .campus-building {
+    fill: var(--building);
+    stroke: none;
+  }
+
+  .campus-landmark {
+    fill: var(--ink-muted);
+    opacity: 0.55;
+  }
+
+  .campus-faculty {
+    cursor: pointer;
+  }
+
+  .campus-faculty-shape {
+    fill: var(--brand);
+    stroke: var(--brand);
+    stroke-width: 6;
+    stroke-linejoin: round;
+    transition: fill 160ms var(--ease);
+  }
+
+  .campus-pin {
+    fill: var(--surface);
+    stroke: var(--brand);
+    stroke-width: 3.5;
+    transition:
+      r 200ms var(--ease),
+      fill 200ms var(--ease);
+  }
+
+  .campus-pin-halo {
+    fill: var(--brand);
+    opacity: 0;
+    transition: opacity 200ms var(--ease);
+  }
+
+  .campus-faculty:hover .campus-pin,
+  .campus-faculty[data-active="true"] .campus-pin {
+    r: 9;
+    fill: var(--score);
+    stroke: var(--score);
+  }
+
+  .campus-faculty:hover .campus-pin-halo,
+  .campus-faculty[data-active="true"] .campus-pin-halo {
+    opacity: 0.18;
+  }
+
+  a:focus-visible .campus-pin {
+    r: 9;
+    fill: var(--score);
+    stroke: var(--score);
+  }
+
+  /* The readout keeps its height whether or not a faculty is under the
+     pointer, so the map never jumps as you move across it. */
+  .campus-readout {
+    transition:
+      border-color 160ms var(--ease),
+      background-color 160ms var(--ease);
+  }
+
+  .campus-readout[data-shown="true"] {
+    border-color: var(--brand);
+  }
+
   /* ---- The token pool --------------------------------------------------- */
 
   /* Identical by design: once a token is spent, nothing about it distinguishes
@@ -519,6 +619,31 @@ body {
   }
 }
 
+@keyframes map-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pin-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(1px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes settle-in {
   from {
     opacity: 0;
@@ -541,6 +666,37 @@ body {
       animation-range: entry 0% cover 180px;
     }
   }
+
+  /* The campus assembles once: water, then roads, then buildings, then the
+     faculty pins drop onto it. */
+  .campus-map .campus-water,
+  .campus-map .campus-road,
+  .campus-map .campus-building,
+  .campus-map .campus-landmark {
+    animation: map-in 420ms var(--ease) both;
+  }
+
+  .campus-map .campus-road {
+    animation-delay: 120ms;
+  }
+
+  .campus-map .campus-building {
+    animation-delay: 220ms;
+  }
+
+  .campus-map .campus-faculty {
+    animation: pin-drop 480ms var(--ease) both;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .campus-map a:nth-of-type(1) .campus-faculty { animation-delay: 520ms; }
+  .campus-map a:nth-of-type(2) .campus-faculty { animation-delay: 600ms; }
+  .campus-map a:nth-of-type(3) .campus-faculty { animation-delay: 680ms; }
+  .campus-map a:nth-of-type(4) .campus-faculty { animation-delay: 760ms; }
+  .campus-map a:nth-of-type(5) .campus-faculty { animation-delay: 840ms; }
+  .campus-map a:nth-of-type(6) .campus-faculty { animation-delay: 920ms; }
+  .campus-map a:nth-of-type(7) .campus-faculty { animation-delay: 1000ms; }
 
   /* Answers a click: the list re-orders, so it says so. */
   .list-settle > * {
