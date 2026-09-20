@@ -498,24 +498,45 @@ body {
     cursor: pointer;
   }
 
-  /* The connecting walk between faculties. */
-  .campus-tour {
+  /* The map names itself, the way a printed one does. */
+  .campus-title {
+    fill: var(--ink);
+    font-family: var(--font-display);
+    font-size: 40px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    text-anchor: end;
+    opacity: 0.22;
+    pointer-events: none;
+  }
+
+  /* The hop between two faculties, left behind as a trail once flown. */
+  .campus-leg {
     fill: none;
     stroke: var(--brand);
     stroke-width: 2.5;
     stroke-linecap: round;
-    opacity: 0;
+    opacity: 0.45;
   }
 
-  .campus-tour-head {
+  .campus-ball {
     fill: var(--score);
-    opacity: 0;
+    r: 4;
     offset-rotate: 0deg;
   }
 
-  /* A label pinned to its building. */
+  .campus-ball-halo {
+    fill: var(--score);
+    r: 4;
+    opacity: 0.16;
+    offset-rotate: 0deg;
+  }
+
+  /* A label pinned to its building. It has to clear the whole map, including
+     the arc that may be passing over the same spot. */
   .campus-tip {
     position: absolute;
+    z-index: 40;
     transform: translate(-50%, -160%);
     white-space: nowrap;
     background: var(--surface);
@@ -527,17 +548,24 @@ body {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
   }
 
-  .campus-credit {
-    position: absolute;
-    right: 0.5rem;
-    bottom: 0.4rem;
-    font-size: 0.65rem;
-    color: var(--ink-muted);
-    opacity: 0.75;
+  .campus-tip[data-align="start"] {
+    transform: translate(-0.9rem, -160%);
   }
 
-  .campus-credit:hover {
-    opacity: 1;
+  .campus-tip[data-align="end"] {
+    transform: translate(calc(-100% + 0.9rem), -160%);
+  }
+
+  .campus-tip[data-below="true"] {
+    transform: translate(-50%, 60%);
+  }
+
+  .campus-tip[data-below="true"][data-align="start"] {
+    transform: translate(-0.9rem, 60%);
+  }
+
+  .campus-tip[data-below="true"][data-align="end"] {
+    transform: translate(calc(-100% + 0.9rem), 60%);
   }
 
   .campus-faculty-shape {
@@ -579,18 +607,6 @@ body {
     r: 9;
     fill: var(--score);
     stroke: var(--score);
-  }
-
-  /* The readout keeps its height whether or not a faculty is under the
-     pointer, so the map never jumps as you move across it. */
-  .campus-readout {
-    transition:
-      border-color 160ms var(--ease),
-      background-color 160ms var(--ease);
-  }
-
-  .campus-readout[data-shown="true"] {
-    border-color: var(--brand);
   }
 
   /* ---- The token pool --------------------------------------------------- */
@@ -675,20 +691,34 @@ body {
   }
 }
 
-@keyframes tour-draw {
-  0% { stroke-dashoffset: 1; opacity: 0; }
-  6% { opacity: 0.55; }
-  62% { stroke-dashoffset: 0; opacity: 0.55; }
-  84% { stroke-dashoffset: 0; opacity: 0; }
-  100% { stroke-dashoffset: 1; opacity: 0; }
+/* The line appears only as fast as the ball carrying it travels. */
+@keyframes leg-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
 }
 
-@keyframes tour-head {
-  0% { offset-distance: 0%; opacity: 0; }
-  6% { opacity: 1; }
-  62% { offset-distance: 100%; opacity: 1; }
-  70% { offset-distance: 100%; opacity: 0; }
-  100% { offset-distance: 100%; opacity: 0; }
+@keyframes ball-fly {
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
+}
+
+/* Height read on a flat map: the ball swells as it climbs and settles again on
+   the way down, so the arc looks thrown rather than slid across the ground. */
+@keyframes ball-loft {
+  0% { r: 3.5; }
+  50% { r: 6.5; }
+  100% { r: 3.5; }
+}
+
+@keyframes ball-loft-halo {
+  0% { r: 4; opacity: 0; }
+  50% { r: 15; opacity: 0.16; }
+  100% { r: 4; opacity: 0; }
+}
+
+@keyframes tour-clear {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 @keyframes settle-in {
@@ -747,16 +777,29 @@ body {
   .campus-map a:nth-of-type(8) .campus-faculty { animation-delay: 1080ms; }
   .campus-map a:nth-of-type(9) .campus-faculty { animation-delay: 1160ms; }
 
-  /* Draws itself across the campus, rests, then starts again. */
-  .campus-tour {
+  /* One hop at a time: the ball flies, the line follows it, and on arrival
+     everything stops while the faculty is named. */
+  .campus-leg-live {
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
-    animation: tour-draw 9s linear 1.3s infinite;
+    animation: leg-draw var(--flight) linear forwards;
   }
 
-  .campus-tour-head {
-    offset-distance: 0%;
-    animation: tour-head 9s linear 1.3s infinite;
+  .campus-ball {
+    animation:
+      ball-fly var(--flight) linear forwards,
+      ball-loft var(--flight) ease-in-out forwards;
+  }
+
+  .campus-ball-halo {
+    animation:
+      ball-fly var(--flight) linear forwards,
+      ball-loft-halo var(--flight) ease-in-out forwards;
+  }
+
+  /* The route is finished; wipe it and set off again. */
+  .campus-tour[data-clearing="true"] {
+    animation: tour-clear 640ms var(--ease) forwards;
   }
 
   /* Answers a click: the list re-orders, so it says so. */

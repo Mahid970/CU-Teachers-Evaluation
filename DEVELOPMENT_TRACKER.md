@@ -376,3 +376,32 @@ the hero.
 
 The teacher directory went from 1.2 MB to 280 KB, and from about 1.2 seconds to
 a quarter of a second before the page starts arriving.
+
+## 30. The map tour flies, and Biological Sciences moves to where it belongs
+
+**Biological Sciences was in the wrong place.** The previous marker averaged the
+road and the pond named after the faculty. Both run far past the faculty itself —
+the road crosses most of the campus — so the average landed a few hundred metres
+away from the departments. The map data does name the faculty grounds directly:
+two adjoining areas, both called "Faculty of Biological Sciences". The marker now
+sits at the middle of those, which puts it right on top of Botany, Zoology,
+Microbiology and the rest.
+
+**The connecting line is thrown, not drawn.** It used to slide from faculty to
+faculty along the ground in one continuous sweep. Now each hop is a high arc
+through the air, the way a lofted shot travels — the ball swells as it climbs and
+settles as it comes down, and the line appears behind it as it goes. On landing
+everything stops, and the faculty it has reached is named until the ball sets off
+again. The route itself was untangled too: it used to finish with one hop across
+the entire campus, because of how the order was worked out.
+
+Pointing at any faculty takes the tour over and holds it there, so two labels
+never compete for the same map.
+
+**The map names itself.** "University of Chittagong" is set into the empty corner,
+the way a printed map carries its title.
+
+**The OpenStreetMap credit has come off the map face** and moved into the site
+footer. The credit is not decoration — the map data is free to use on the
+condition that it is credited — so it has to appear somewhere on the site, but it
+does not have to sit on the drawing.

@@ -37,7 +37,16 @@ export function SiteFooter() {
         <p className="prose-measure mx-auto max-w-6xl px-4 py-5 text-xs text-ink-muted">
           A student project, not an official website of the University of
           Chittagong. Teacher names and photographs come from the public pages of
-          cu.ac.bd.
+          cu.ac.bd. The campus map is drawn from{" "}
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="link-grow hover:text-brand"
+          >
+            OpenStreetMap
+          </a>{" "}
+          data, © OpenStreetMap contributors.
         </p>
       </div>
     </footer>

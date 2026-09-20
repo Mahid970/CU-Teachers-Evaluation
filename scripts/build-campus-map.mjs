@@ -49,6 +49,7 @@ const features = await overpass(`[out:json][timeout:120];
   way["waterway"="riverbank"](${BBOX});
   node["railway"="station"](${BBOX});
   way["railway"](${BBOX});
+  way["landuse"="education"]["name"](${BBOX});
 );
 out geom;`);
 
@@ -134,16 +135,21 @@ const FACULTY_MATCHES = [
 ];
 
 /**
- * Biological Sciences has no building of its own in the map data. What OSM does
- * name is the road and the pond the faculty is named after, so the marker goes
- * at the middle of those — derived from real features, not guessed at.
+ * Biological Sciences has no single building of its own in the map data, but
+ * OSM does name the faculty grounds: two adjoining `landuse=education` areas
+ * both called "Faculty of Biological Sciences", which together are the
+ * precinct the departments sit in. The marker goes at the middle of those.
+ *
+ * An earlier version averaged the road and the pond named after the faculty
+ * instead. Both run far past the faculty itself — the road crosses most of the
+ * campus — so that average landed nowhere near the buildings.
  */
 const DERIVED = [
   {
     key: "biological",
     label: "Biological Sciences",
     href: "/faculties#biological",
-    from: ["Faculty of Biological Sciences Road", "Biological Science Faculty Pond"],
+    from: ["Faculty of Biological Sciences"],
   },
 ];
 const derivedPoints = new Map(DERIVED.map((d) => [d.key, []]));
@@ -181,7 +187,9 @@ for (const el of features.elements) {
   if (geometry.length < 3) continue;
 
   for (const d of DERIVED) {
-    if (d.from.includes(tags.name)) derivedPoints.get(d.key).push(centroid(geometry));
+    if (d.from.includes(tags.name) && !tags.highway && !tags.natural) {
+      for (const point of geometry) derivedPoints.get(d.key).push([point.lon, point.lat]);
+    }
   }
 
   // Landmarks only have to sit inside the drawn frame. The campus outline is
@@ -259,15 +267,11 @@ for (const point of [...landmarks, ...faculties]) {
   ys.push(point.y);
 }
 
-const padX = (Math.max(...xs) - Math.min(...xs)) * 0.06;
-const padY = (Math.max(...ys) - Math.min(...ys)) * 0.06;
-const viewX = Math.round(Math.min(...xs) - padX);
-const viewY = Math.round(Math.min(...ys) - padY);
-const viewW = Math.round(Math.max(...xs) - Math.min(...xs) + padX * 2);
-const viewH = Math.round(Math.max(...ys) - Math.min(...ys) + padY * 2);
+// The order the line visits faculties in. Nearest neighbour gets close, then
+// 2-opt untangles it: nearest neighbour always strands whatever it skipped, and
+// here that left one hop crossing the entire campus at the end.
+const gap = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
-// Nearest neighbour from the westernmost marker: a route that reads as a walk
-// across campus rather than a tangle of crossing lines.
 const tourOrder = [];
 const remaining = [...faculties];
 let cursor = remaining.reduce((a, b) => (a.x <= b.x ? a : b));
@@ -277,7 +281,7 @@ while (remaining.length) {
   let best = 0;
   let bestDistance = Infinity;
   remaining.forEach((f, i) => {
-    const distance = Math.hypot(f.x - cursor.x, f.y - cursor.y);
+    const distance = gap(f, cursor);
     if (distance < bestDistance) {
       bestDistance = distance;
       best = i;
@@ -287,18 +291,83 @@ while (remaining.length) {
   tourOrder.push(cursor);
 }
 
-// Each leg bows outwards slightly, so the line arcs between buildings.
-let tour = `M${tourOrder[0].x} ${tourOrder[0].y}`;
-for (let i = 1; i < tourOrder.length; i += 1) {
-  const a = tourOrder[i - 1];
-  const b = tourOrder[i];
+const walked = (route) =>
+  route.reduce((sum, f, i) => (i ? sum + gap(route[i - 1], f) : 0), 0);
+
+// The route is a walk, not a circuit, so either end is free to move.
+for (let pass = 0; pass < 40; pass += 1) {
+  let improved = false;
+  for (let i = 0; i < tourOrder.length - 1; i += 1) {
+    for (let j = i + 1; j < tourOrder.length; j += 1) {
+      const candidate = [
+        ...tourOrder.slice(0, i),
+        ...tourOrder.slice(i, j + 1).reverse(),
+        ...tourOrder.slice(j + 1),
+      ];
+      if (walked(candidate) < walked(tourOrder) - 0.01) {
+        tourOrder.splice(0, tourOrder.length, ...candidate);
+        improved = true;
+      }
+    }
+  }
+  if (!improved) break;
+}
+
+// Each leg is thrown rather than drawn: a high arc that leaves one faculty and
+// lands on the next, the way a lofted shot travels. The bow always swings away
+// from the middle of the campus, so the arcs open outwards instead of cutting
+// back through the buildings they are meant to fly over.
+const hubX = tourOrder.reduce((sum, f) => sum + f.x, 0) / tourOrder.length;
+const hubY = tourOrder.reduce((sum, f) => sum + f.y, 0) / tourOrder.length;
+
+const apexes = [];
+
+const legPath = (a, b) => {
   const mx = (a.x + b.x) / 2;
   const my = (a.y + b.y) / 2;
   const dx = b.x - a.x;
   const dy = b.y - a.y;
-  const bow = 0.14;
-  tour += `Q${round(mx - dy * bow)} ${round(my + dx * bow)} ${b.x} ${b.y}`;
+  const length = Math.hypot(dx, dy) || 1;
+
+  // The perpendicular, turned to point away from the centre of the campus.
+  let nx = -dy / length;
+  let ny = dx / length;
+  if (nx * (mx - hubX) + ny * (my - hubY) < 0) {
+    nx = -nx;
+    ny = -ny;
+  }
+
+  // Short hops still need visible air under them; long ones would loop absurdly
+  // far out on a flat share of their length, so the rise is capped.
+  const rise = Math.min(Math.max(length * 0.24, 22), 82);
+  // A quadratic sits halfway to its control point at the top of its travel.
+  apexes.push([mx + nx * rise, my + ny * rise]);
+  return `M${a.x} ${a.y}Q${round(mx + nx * rise * 2)} ${round(my + ny * rise * 2)} ${b.x} ${b.y}`;
+};
+
+const legs = [];
+for (let i = 1; i < tourOrder.length; i += 1) {
+  legs.push({
+    from: tourOrder[i - 1].key,
+    to: tourOrder[i].key,
+    d: legPath(tourOrder[i - 1], tourOrder[i]),
+  });
 }
+
+// One path of the whole route, for readers who have asked for less motion.
+const tour = legs.map((leg, i) => (i === 0 ? leg.d : leg.d.replace(/^M[^Q]*/, ""))).join("");
+
+for (const [ax, ay] of apexes) {
+  xs.push(ax);
+  ys.push(ay);
+}
+
+const padX = (Math.max(...xs) - Math.min(...xs)) * 0.04;
+const padY = (Math.max(...ys) - Math.min(...ys)) * 0.04;
+const viewX = Math.round(Math.min(...xs) - padX);
+const viewY = Math.round(Math.min(...ys) - padY);
+const viewW = Math.round(Math.max(...xs) - Math.min(...xs) + padX * 2);
+const viewH = Math.round(Math.max(...ys) - Math.min(...ys) + padY * 2);
 
 const file = `// Generated by scripts/build-campus-map.mjs — do not edit by hand.
 // Map data © OpenStreetMap contributors (ODbL). Every shape here is real
@@ -324,8 +393,16 @@ export type CampusFaculty = {
   y: number;
 };
 
-/** A route visiting every faculty, used for the connecting line. */
+/** The whole route as one path, drawn static when motion is not wanted. */
 export const CAMPUS_TOUR = ${JSON.stringify(tour)};
+
+export type CampusLeg = { from: string; to: string; d: string };
+
+/**
+ * The route split into single hops. Each is flown one at a time so the line can
+ * stop on arrival and name the faculty it has reached.
+ */
+export const CAMPUS_TOUR_LEGS: CampusLeg[] = ${JSON.stringify(legs, null, 2)};
 
 export const CAMPUS_FACULTIES: CampusFaculty[] = ${JSON.stringify(faculties, null, 2)};
 

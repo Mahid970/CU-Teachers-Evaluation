@@ -2,7 +2,7 @@
 // Map data © OpenStreetMap contributors (ODbL). Every shape here is real
 // geometry, and a marker only appears where OSM names that building.
 
-export const CAMPUS_VIEWBOX = "78 395 710 610";
+export const CAMPUS_VIEWBOX = "91 406 685 588";
 
 export const CAMPUS_OUTLINE = "M766.4 836.9L760.6 824.5L760.4 797.4L742.8 783.9L729.5 764.7L722.9 749.2L704.7 743.4L709.2 723.4L704.4 717.5L687.3 714.5L690.9 701.9L688.9 690.9L671.8 679.9L672.7 652.3L675.2 646.2L673.7 639.2L668.6 631L669.8 625.4L667.6 621.7L667.3 616.1L671.7 612.6L674.8 606L685.8 562.8L702.7 511.7L718.9 468.4L710.7 398.5L703.4 346.1L724.3 313.2L789 259L812 217.5L806 171.8L802.9 140.1L791.4 76.1L651.9 0L384.4 92.8L281.2 173.5L63.3 308.8L14.3 329L0 347.9L26.1 371.6L37.7 392.5L42.2 409.5L52.8 405.1L58.5 413.2L50.2 422.7L53.8 437.6L72.1 479.3L111.8 611L71.9 641.5L75.8 662.1L56.6 676.6L59.6 779L96.6 804.3L107.1 825.6L101.2 846.9L104.5 861.7L139 904L113.9 917.6L85.3 956.4L107.1 1000L171.7 974.8L220.5 946.7L261.9 933.2L309.7 916.3L319.9 910.4L353.2 898L380.3 890.2L404.4 880.4L402.8 866.8L405.1 863.8L430.7 862.1L456.9 862.3L456.9 867.5L471 869.7L476.8 875.4L489.9 888.2L515.9 884.7L534.8 882.6L549.7 891.9L564.1 902.4L595.6 896.5L628.2 887.1L658.8 881.6L673.5 880.1L691.1 886.6L705 884.1L711 862.1L716.9 853.9L753 859.7L769.9 853.6L766.4 836.9Z";
 
@@ -22,8 +22,57 @@ export type CampusFaculty = {
   y: number;
 };
 
-/** A route visiting every faculty, used for the connecting line. */
-export const CAMPUS_TOUR = "M150.2 929.8Q312 866.5 417.4 728.3Q441.7 732.9 464.9 724.1Q436.6 693.6 396.6 682.2Q412.9 668 419.5 647.3Q405.5 612.7 375.5 590.4Q358.1 589.7 342.9 598.2Q368.9 565.6 374.3 524.3Q466.7 729.6 652.3 857.1";
+/** The whole route as one path, drawn static when motion is not wanted. */
+export const CAMPUS_TOUR = "M150.2 929.8Q76.9 681.5 305.8 560.7Q319.4 503.6 374.3 524.3Q330.9 558.1 375.5 590.4Q432.3 591.9 419.5 647.3Q371.3 640.6 396.6 682.2Q447.1 687.2 417.4 728.3Q445 770 464.9 724.1Q622.4 700.6 652.3 857.1";
+
+export type CampusLeg = { from: string; to: string; d: string };
+
+/**
+ * The route split into single hops. Each is flown one at a time so the line can
+ * stop on arrival and name the faculty it has reached.
+ */
+export const CAMPUS_TOUR_LEGS: CampusLeg[] = [
+  {
+    "from": "ifes",
+    "to": "biological",
+    "d": "M150.2 929.8Q76.9 681.5 305.8 560.7"
+  },
+  {
+    "from": "biological",
+    "to": "marine",
+    "d": "M305.8 560.7Q319.4 503.6 374.3 524.3"
+  },
+  {
+    "from": "marine",
+    "to": "science",
+    "d": "M374.3 524.3Q330.9 558.1 375.5 590.4"
+  },
+  {
+    "from": "science",
+    "to": "arts",
+    "d": "M375.5 590.4Q432.3 591.9 419.5 647.3"
+  },
+  {
+    "from": "arts",
+    "to": "engineering",
+    "d": "M419.5 647.3Q371.3 640.6 396.6 682.2"
+  },
+  {
+    "from": "engineering",
+    "to": "business",
+    "d": "M396.6 682.2Q447.1 687.2 417.4 728.3"
+  },
+  {
+    "from": "business",
+    "to": "social",
+    "d": "M417.4 728.3Q445 770 464.9 724.1"
+  },
+  {
+    "from": "social",
+    "to": "law",
+    "d": "M464.9 724.1Q622.4 700.6 652.3 857.1"
+  }
+];
 
 export const CAMPUS_FACULTIES: CampusFaculty[] = [
   {
@@ -94,8 +143,8 @@ export const CAMPUS_FACULTIES: CampusFaculty[] = [
     "key": "biological",
     "label": "Biological Sciences",
     "href": "/faculties#biological",
-    "x": 342.9,
-    "y": 598.2
+    "x": 305.8,
+    "y": 560.7
   }
 ];
 

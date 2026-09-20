@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   CAMPUS_BUILDINGS,
@@ -9,6 +9,7 @@ import {
   CAMPUS_OUTLINE,
   CAMPUS_ROADS,
   CAMPUS_TOUR,
+  CAMPUS_TOUR_LEGS,
   CAMPUS_VIEWBOX,
   CAMPUS_WATER,
 } from "@/lib/campus-map";
@@ -21,16 +22,122 @@ import {
  * a faster way in than any list, and it says what the site is about before a
  * word is read.
  *
- * Every shape is real data. A faculty is only marked where OSM names that
- * building, or — for Biological Sciences, which has none — at the middle of the
- * road and pond named after it.
+ * Every shape is real data. A faculty is marked where OSM names that building,
+ * or — for Biological Sciences, which has no single building — at the middle of
+ * the grounds OSM names after the faculty.
+ *
+ * A line tours the faculties one hop at a time, thrown into the air rather than
+ * drawn along the ground, and stops on each landing long enough to name where
+ * it is. Pointing at any faculty takes the tour over.
  */
 
 const [VIEW_X, VIEW_Y, VIEW_W, VIEW_H] = CAMPUS_VIEWBOX.split(" ").map(Number);
 
+const FLIGHT_MS = 720;
+const LANDED_MS = 700;
+const CLEAR_MS = 640;
+
+const LEGS = CAMPUS_TOUR_LEGS.length;
+
+/**
+ * Stage 0 waits on the first faculty. After that the tour alternates: odd
+ * stages are a hop in the air, even stages are the pause on arrival. The last
+ * odd stage has no leg left to fly, and is the moment the trail clears.
+ */
+const STAGES = LEGS * 2 + 2;
+
+type Stage = {
+  /** The leg being flown, or null while the tour is standing still. */
+  flying: number | null;
+  /** The faculty under the tooltip right now, or null while in the air. */
+  landedOn: string | null;
+  /** Legs already flown, drawn as the trail behind. */
+  drawn: number;
+  clearing: boolean;
+  duration: number;
+};
+
+function readStage(stage: number): Stage {
+  if (stage % 2 === 0) {
+    const arrived = stage / 2;
+    return {
+      flying: null,
+      landedOn: arrived === 0 ? CAMPUS_TOUR_LEGS[0].from : CAMPUS_TOUR_LEGS[arrived - 1].to,
+      drawn: arrived,
+      clearing: false,
+      duration: LANDED_MS,
+    };
+  }
+
+  const leg = (stage - 1) / 2;
+  if (leg >= LEGS) {
+    return { flying: null, landedOn: null, drawn: LEGS, clearing: true, duration: CLEAR_MS };
+  }
+  return { flying: leg, landedOn: null, drawn: leg, clearing: false, duration: FLIGHT_MS };
+}
+
+/** The map itself never changes, so it is kept out of the tour's re-renders. */
+const CampusGround = memo(function CampusGround() {
+  return (
+    <>
+      <path d={CAMPUS_OUTLINE} className="campus-outline" />
+
+      {CAMPUS_WATER.map((d, i) => (
+        <path key={`w${i}`} d={d} className="campus-water" />
+      ))}
+
+      {CAMPUS_ROADS.map((d, i) => (
+        <path key={`r${i}`} d={d} className="campus-road" />
+      ))}
+
+      {CAMPUS_BUILDINGS.map((d, i) => (
+        <path
+          key={`b${i}`}
+          d={d}
+          className="campus-building"
+          style={{ animationDelay: `${Math.min(i, 60) * 6}ms` }}
+        />
+      ))}
+
+      {CAMPUS_LANDMARKS.map((l) =>
+        l.d ? <path key={`l${l.label}`} d={l.d} className="campus-landmark" /> : null,
+      )}
+    </>
+  );
+});
+
 export function CampusMap({ counts }: { counts: Record<string, number> }) {
-  const [active, setActive] = useState<string | null>(null);
-  const current = CAMPUS_FACULTIES.find((f) => f.key === active);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [stage, setStage] = useState(0);
+  const [motion, setMotion] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setMotion(!query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+
+  const step = useMemo(() => readStage(stage), [stage]);
+
+  // Pointing at a faculty holds the tour where it is: two labels competing for
+  // the same map is worse than a tour that waits.
+  useEffect(() => {
+    if (!motion || hovered) return;
+    const timer = setTimeout(() => setStage((s) => (s + 1) % STAGES), step.duration);
+    return () => clearTimeout(timer);
+  }, [motion, hovered, stage, step.duration]);
+
+  const activeKey = hovered ?? (motion ? step.landedOn : null);
+  const current = CAMPUS_FACULTIES.find((f) => f.key === activeKey);
+
+  // The frame clips anything that leaves it, so a label near an edge is hung
+  // off the marker rather than centred on it: centred, the wide ones lose their
+  // first words to the left edge of the map.
+  const tipTop = current ? ((current.y - VIEW_Y) / VIEW_H) * 100 : 0;
+  const tipLeft = current ? ((current.x - VIEW_X) / VIEW_W) * 100 : 0;
+  const tipAlign = tipLeft < 26 ? "start" : tipLeft > 74 ? "end" : "center";
 
   return (
     <figure className="panel relative overflow-hidden">
@@ -40,48 +147,54 @@ export function CampusMap({ counts }: { counts: Record<string, number> }) {
         role="img"
         aria-label="Map of the University of Chittagong campus, with each faculty building marked."
       >
-        <path d={CAMPUS_OUTLINE} className="campus-outline" />
+        <CampusGround />
 
-        {CAMPUS_WATER.map((d, i) => (
-          <path key={`w${i}`} d={d} className="campus-water" />
-        ))}
+        <text x={VIEW_X + VIEW_W - 20} y={VIEW_Y + 58} className="campus-title">
+          University of
+        </text>
+        <text x={VIEW_X + VIEW_W - 20} y={VIEW_Y + 106} className="campus-title">
+          Chittagong
+        </text>
 
-        {CAMPUS_ROADS.map((d, i) => (
-          <path key={`r${i}`} d={d} className="campus-road" />
-        ))}
+        {motion ? (
+          <g className="campus-tour" data-clearing={step.clearing ? "true" : undefined}>
+            {CAMPUS_TOUR_LEGS.slice(0, step.drawn).map((leg) => (
+              <path key={leg.to} d={leg.d} className="campus-leg" />
+            ))}
 
-        {CAMPUS_BUILDINGS.map((d, i) => (
-          <path
-            key={`b${i}`}
-            d={d}
-            className="campus-building"
-            style={{ animationDelay: `${Math.min(i, 60) * 6}ms` }}
-          />
-        ))}
-
-        {CAMPUS_LANDMARKS.map((l) =>
-          l.d ? <path key={`l${l.label}`} d={l.d} className="campus-landmark" /> : null,
+            {step.flying !== null && (
+              <g key={`fly-${stage}`} style={{ "--flight": `${FLIGHT_MS}ms` } as React.CSSProperties}>
+                <path
+                  d={CAMPUS_TOUR_LEGS[step.flying].d}
+                  className="campus-leg campus-leg-live"
+                  pathLength={1}
+                />
+                <circle
+                  className="campus-ball-halo"
+                  style={{ offsetPath: `path("${CAMPUS_TOUR_LEGS[step.flying].d}")` }}
+                />
+                <circle
+                  className="campus-ball"
+                  style={{ offsetPath: `path("${CAMPUS_TOUR_LEGS[step.flying].d}")` }}
+                />
+              </g>
+            )}
+          </g>
+        ) : (
+          <path d={CAMPUS_TOUR} className="campus-leg" />
         )}
-
-        {/* A line that walks the campus, faculty to faculty, over and over. */}
-        <path d={CAMPUS_TOUR} className="campus-tour" pathLength={1} />
-        <circle
-          r="4.5"
-          className="campus-tour-head"
-          style={{ offsetPath: `path("${CAMPUS_TOUR}")` }}
-        />
 
         {CAMPUS_FACULTIES.map((f) => (
           <Link
             key={f.key}
             href={f.href}
-            onMouseEnter={() => setActive(f.key)}
-            onMouseLeave={() => setActive(null)}
-            onFocus={() => setActive(f.key)}
-            onBlur={() => setActive(null)}
+            onMouseEnter={() => setHovered(f.key)}
+            onMouseLeave={() => setHovered(null)}
+            onFocus={() => setHovered(f.key)}
+            onBlur={() => setHovered(null)}
             aria-label={`${f.label}: ${counts[f.key] ?? 0} teachers`}
           >
-            <g className="campus-faculty" data-active={active === f.key ? "true" : undefined}>
+            <g className="campus-faculty" data-active={activeKey === f.key ? "true" : undefined}>
               {f.d && <path d={f.d} className="campus-faculty-shape" />}
               <circle cx={f.x} cy={f.y} r="17" className="campus-pin-halo" />
               <circle cx={f.x} cy={f.y} r="7" className="campus-pin" />
@@ -95,24 +208,14 @@ export function CampusMap({ counts }: { counts: Record<string, number> }) {
       {current && (
         <div
           className="campus-tip"
-          style={{
-            left: `${((current.x - VIEW_X) / VIEW_W) * 100}%`,
-            top: `${((current.y - VIEW_Y) / VIEW_H) * 100}%`,
-          }}
+          data-align={tipAlign}
+          data-below={tipTop < 16 ? "true" : undefined}
+          style={{ left: `${tipLeft}%`, top: `${tipTop}%` }}
         >
           <span className="font-semibold">{current.label}</span>
           <span className="numerals text-ink-muted"> · {counts[current.key] ?? 0}</span>
         </div>
       )}
-
-      <a
-        href="https://www.openstreetmap.org/copyright"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="campus-credit"
-      >
-        © OpenStreetMap
-      </a>
     </figure>
   );
 }
