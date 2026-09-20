@@ -45,31 +45,68 @@ check("step 1 returns teachers with public keys", step1.json.teachers?.length > 
 const importKey = (jwk) =>
   crypto.subtle.importKey("jwk", jwk, { name: "RSA-PSS", hash: "SHA-384" }, true, ["verify"]);
 
-const requests = [];
-for (const teacher of step1.json.teachers) {
-  const publicKey = await importKey(teacher.publicKey);
-  const nonce = crypto.getRandomValues(new Uint8Array(32));
-  const prepared = suite.prepare(nonce);
-  const { blindedMsg, inv } = await suite.blind(publicKey, prepared);
-  requests.push({ teacherId: teacher.id, publicKey, prepared, inv, blinded: blindedMsg });
-}
+const teachers = step1.json.teachers;
+const chunkSize = step1.json.chunkSize ?? 4;
+check("step 1 states the chunk size", chunkSize > 0, `${chunkSize} per request`);
 
-const step2 = await post("/api/issue", {
-  idToken: `dev:${STUDENT}`,
-  blinded: requests.map((r) => ({ teacherId: r.teacherId, blinded: b64(r.blinded) })),
-});
-check("step 2 signs one token per teacher",
-  step2.json.signatures?.length === requests.length,
-  `${step2.json.signatures?.length} signatures`);
+const blindFor = async (teacher) => {
+  const publicKey = await importKey(teacher.publicKey);
+  const prepared = suite.prepare(crypto.getRandomValues(new Uint8Array(32)));
+  const { blindedMsg, inv } = await suite.blind(publicKey, prepared);
+  return { teacherId: teacher.id, publicKey, prepared, inv, blinded: blindedMsg };
+};
 
 const tokens = [];
-for (const signature of step2.json.signatures ?? []) {
-  const request = requests.find((r) => r.teacherId === signature.teacherId);
-  const finalized = await suite.finalize(
-    request.publicKey, request.prepared, unb64(signature.blindSignature), request.inv);
-  tokens.push({ teacherId: request.teacherId, prepared: b64(request.prepared), signature: b64(finalized) });
+const chunkCount = Math.ceil(teachers.length / chunkSize);
+let signedCount = 0;
+let lastChunkRequests = null;
+let lastChunkIndex = -1;
+
+for (let chunk = 0; chunk < chunkCount; chunk += 1) {
+  const slice = teachers.slice(chunk * chunkSize, chunk * chunkSize + chunkSize);
+  const requests = await Promise.all(slice.map(blindFor));
+  const res = await post("/api/issue", {
+    idToken: `dev:${STUDENT}`,
+    chunk,
+    blinded: requests.map((r) => ({ teacherId: r.teacherId, blinded: b64(r.blinded) })),
+  });
+  if (!res.json.signatures) {
+    check(`chunk ${chunk} signed`, false, JSON.stringify(res.json).slice(0, 90));
+    break;
+  }
+  signedCount += res.json.signatures.length;
+  for (const signature of res.json.signatures) {
+    const request = requests.find((r) => r.teacherId === signature.teacherId);
+    const finalized = await suite.finalize(
+      request.publicKey, request.prepared, unb64(signature.blindSignature), request.inv);
+    tokens.push({ teacherId: request.teacherId, prepared: b64(request.prepared), signature: b64(finalized) });
+  }
+  lastChunkRequests = requests;
+  lastChunkIndex = chunk;
 }
-check("tokens unblind correctly", tokens.length === requests.length);
+
+check("every teacher is signed across the chunks",
+  signedCount === teachers.length, `${signedCount} of ${teachers.length}`);
+check("tokens unblind correctly", tokens.length === teachers.length);
+
+// A chunk the server has already served must not be served twice, or a student
+// could collect two tokens for the same teacher.
+const replay = await post("/api/issue", {
+  idToken: `dev:${STUDENT}`,
+  chunk: lastChunkIndex,
+  blinded: lastChunkRequests.map((r) => ({ teacherId: r.teacherId, blinded: b64(r.blinded) })),
+});
+check("a chunk cannot be issued twice", replay.status === 409, `status ${replay.status}`);
+
+// The server picks which teachers a chunk covers; asking for a different one
+// must be refused, or tokens could be stacked on a single teacher.
+const wrongSlice = await post("/api/issue", {
+  idToken: `dev:${STUDENT}`,
+  chunk: 0,
+  blinded: [{ teacherId: teachers[0].id, blinded: b64(lastChunkRequests[0].blinded) }],
+});
+check("a chunk with the wrong teachers is refused",
+  wrongSlice.status === 400 || wrongSlice.status === 409, `status ${wrongSlice.status}`);
 
 // ---- 2. Rating ----------------------------------------------------------
 const scores = {
@@ -107,7 +144,11 @@ check("a forged signature is rejected", forged.status === 403, `status ${forged.
 // ---- 4. Second issuance -------------------------------------------------
 const repeat = await post("/api/issue", {
   idToken: `dev:${STUDENT}`,
-  blinded: [{ teacherId: requests[0].teacherId, blinded: b64(requests[0].blinded) }],
+  chunk: 0,
+  blinded: (await Promise.all(teachers.slice(0, chunkSize).map(blindFor))).map((r) => ({
+    teacherId: r.teacherId,
+    blinded: b64(r.blinded),
+  })),
 });
 check("the same student cannot collect a second set", repeat.status === 409,
   `status ${repeat.status}`);

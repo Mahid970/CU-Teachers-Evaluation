@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { VerifyFlow } from "@/components/verify-flow";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Verify and rate",
@@ -8,7 +11,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
-export default function VerifyPage() {
+export default async function VerifyPage() {
+  // Read at request time rather than baked into the build: the client id is
+  // public, but this way rotating it needs no rebuild.
+  const { env } = await getCloudflareContext({ async: true });
+  const clientId = env.GOOGLE_CLIENT_ID ?? "";
+  const devLogin = env.ALLOW_DEV_LOGIN === "1";
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-16">
       <p className="section-marker">Step one</p>
@@ -19,7 +28,7 @@ export default function VerifyPage() {
         anonymous tokens, and then forget you were here.
       </p>
 
-      <VerifyFlow />
+      <VerifyFlow clientId={clientId} devLogin={devLogin} />
     </div>
   );
 }

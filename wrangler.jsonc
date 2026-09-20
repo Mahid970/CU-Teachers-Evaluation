@@ -18,14 +18,14 @@
     {
       "binding": "DB",
       "database_name": "cu-teacher-eval",
-      "database_id": "local-dev-placeholder",
+      "database_id": "f286c43b-5735-4065-9118-1367495ba918",
       "migrations_dir": "migrations"
     }
   ],
   "kv_namespaces": [
     {
       "binding": "RATE_LIMIT",
-      "id": "local-dev-placeholder"
+      "id": "09c35a7258eb4fb6a376adfa5eca3851"
     }
   ],
   "triggers": {

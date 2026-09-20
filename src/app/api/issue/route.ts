@@ -12,13 +12,21 @@ export const dynamic = "force-dynamic";
 /**
  * Two calls live here.
  *
- *   POST { idToken }                       -> which department, which teachers
- *   POST { idToken, blinded: [...] }       -> one blind signature per teacher
+ *   POST { idToken }                           -> department, teachers, chunk size
+ *   POST { idToken, chunk, blinded: [...] }    -> signatures for that chunk
  *
- * The second call writes exactly one row: an HMAC saying this student has
- * collected their tokens for this term. It never records which teachers were
- * requested, and it cannot see the tokens it is signing.
+ * Signing is split into small chunks so a single request stays well inside the
+ * Workers CPU limit, and so a dropped connection costs a student a few teachers
+ * rather than all of them.
+ *
+ * The server decides which teachers each chunk covers, from a fixed order. That
+ * is what stops a student spending every token on one teacher: they cannot
+ * choose who a chunk is for. Progress is a single counter on the issuance row —
+ * no teacher is ever recorded against a student.
  */
+
+/** Teachers signed per request. Sized from measured signing cost. */
+export const CHUNK_SIZE = 4;
 
 const RequestSchema = z.object({
   // Real Google ID tokens are long; the lower bound only rejects empty input
@@ -27,6 +35,8 @@ const RequestSchema = z.object({
   /** Set by legacy code 207 students who pick their marine unit. */
   deptChoice: z.string().optional(),
   turnstileToken: z.string().max(4096).optional(),
+  /** Which slice of the student's teacher list this request is for. */
+  chunk: z.number().int().min(0).max(500).optional(),
   blinded: z
     .array(
       z.object({
@@ -53,7 +63,7 @@ export async function POST(request: Request) {
 
   const parsed = RequestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail("Malformed request.");
-  const { idToken, blinded, deptChoice, turnstileToken } = parsed.data;
+  const { idToken, blinded, deptChoice, turnstileToken, chunk } = parsed.data;
 
   if (!(await verifyTurnstile(turnstileToken))) {
     return fail("Please complete the check that you are not a robot.", 403);
@@ -124,23 +134,28 @@ export async function POST(request: Request) {
     `SELECT t.id, t.name, t.designation, t.dept_slug, t.photo_url, d.name AS dept_name
      FROM teachers t JOIN departments d ON d.slug = t.dept_slug
      WHERE t.active = 1 AND t.dept_slug IN (${slugs.map(() => "?").join(",")})
-     ORDER BY t.sort_order`,
+     ORDER BY t.dept_slug, t.sort_order, t.id`,
   )
     .bind(...slugs)
     .all<TeacherRow>();
 
   // ---- Step 1: tell the browser what it may ask to have signed ----------
   if (!blinded) {
+    // Only this student's teachers: fetching every key for the term would read
+    // a thousand rows to use twenty.
+    const teacherIds = teachers.map((t) => t.id);
     const { results: keys } = await cfEnv.DB.prepare(
-      `SELECT teacher_id, public_key FROM teacher_term_keys WHERE term_id = ?1`,
+      `SELECT teacher_id, public_key FROM teacher_term_keys
+       WHERE term_id = ?1 AND teacher_id IN (${teacherIds.map(() => "?").join(",")})`,
     )
-      .bind(term.id)
+      .bind(term.id, ...teacherIds)
       .all<{ teacher_id: string; public_key: string }>();
     const keyByTeacher = new Map(keys.map((k) => [k.teacher_id, k.public_key]));
 
     return Response.json({
       term: { id: term.id, label: term.label },
       session,
+      chunkSize: CHUNK_SIZE,
       department: {
         slug: deptSlug,
         name: DEPARTMENT_BY_SLUG[deptSlug]?.name ?? deptSlug,
@@ -161,32 +176,67 @@ export async function POST(request: Request) {
   // ---- Step 2: sign, once per student per term --------------------------
   if (!cfEnv.MASTER_KEY || !cfEnv.TERM_PEPPER) return fail("Server is not configured.", 500);
 
+  if (chunk === undefined) return fail("Which chunk is this request for?");
+
+  const totalChunks = Math.ceil(teachers.length / CHUNK_SIZE);
+  const expected = teachers.slice(chunk * CHUNK_SIZE, chunk * CHUNK_SIZE + CHUNK_SIZE);
+  if (expected.length === 0) return fail("That chunk is past the end of the list.");
+
+  // The client may only ask for exactly the teachers this chunk covers.
+  const expectedIds = new Set(expected.map((t) => t.id));
+  const requested = blinded.filter((b) => expectedIds.has(b.teacherId));
+  if (requested.length !== expected.length || requested.length !== blinded.length) {
+    return fail("This request does not match the teachers for that chunk.");
+  }
+
   const hmac = await studentHmac(cfEnv.TERM_PEPPER!, studentId);
-  const claimed = await cfEnv.DB.prepare(
-    `INSERT OR IGNORE INTO issuances (term_id, student_hmac, issued_on) VALUES (?1, ?2, ?3)`,
+  await cfEnv.DB.prepare(
+    `INSERT OR IGNORE INTO issuances (term_id, student_hmac, issued_on, next_index)
+     VALUES (?1, ?2, ?3, 0)`,
   )
     .bind(term.id, hmac, todayIso())
     .run();
 
+  // Advancing the counter and claiming the chunk are the same statement, so two
+  // requests for one chunk cannot both succeed.
+  const claimed = await cfEnv.DB.prepare(
+    `UPDATE issuances SET next_index = ?4
+     WHERE term_id = ?1 AND student_hmac = ?2 AND next_index = ?3`,
+  )
+    .bind(term.id, hmac, chunk, chunk + 1)
+    .run();
+
   if (claimed.meta.changes === 0) {
+    const row = await cfEnv.DB.prepare(
+      `SELECT next_index FROM issuances WHERE term_id = ?1 AND student_hmac = ?2`,
+    )
+      .bind(term.id, hmac)
+      .first<{ next_index: number }>();
+    const done = row?.next_index ?? 0;
     return Response.json(
       {
         error:
-          "Tokens for this term were already issued to this student. They live in the browser you used, and cannot be issued twice — that is what stops double voting. Restore a backup from that device to keep rating.",
-        alreadyIssued: true,
+          done > chunk
+            ? "These tokens were already issued and cannot be issued twice — that is what stops double voting. Carry on with the rest, or restore a backup from the browser you used."
+            : "Chunks must be requested in order.",
+        alreadyIssued: done > chunk,
+        nextChunk: done,
+        totalChunks,
       },
       { status: 409 },
     );
   }
 
-  const allowed = new Set(teachers.map((t) => t.id));
-  const requested = blinded.filter((b) => allowed.has(b.teacherId));
-
-  const { results: keyRows } = await cfEnv.DB.prepare(
-    `SELECT teacher_id, private_key_wrapped FROM teacher_term_keys WHERE term_id = ?1`,
-  )
-    .bind(term.id)
-    .all<{ teacher_id: string; private_key_wrapped: string }>();
+  // Private keys are large; read only the ones about to be used.
+  const requestedIds = requested.map((r) => r.teacherId);
+  const { results: keyRows } = requestedIds.length
+    ? await cfEnv.DB.prepare(
+        `SELECT teacher_id, private_key_wrapped FROM teacher_term_keys
+         WHERE term_id = ?1 AND teacher_id IN (${requestedIds.map(() => "?").join(",")})`,
+      )
+        .bind(term.id, ...requestedIds)
+        .all<{ teacher_id: string; private_key_wrapped: string }>()
+    : { results: [] as { teacher_id: string; private_key_wrapped: string }[] };
   const wrappedByTeacher = new Map(keyRows.map((k) => [k.teacher_id, k.private_key_wrapped]));
 
   // Signed concurrently: a student waits on one round trip for every teacher
@@ -202,5 +252,11 @@ export async function POST(request: Request) {
   );
   const signatures = signed.filter((s) => s !== null);
 
-  return Response.json({ term: { id: term.id, label: term.label }, signatures });
+  return Response.json({
+    term: { id: term.id, label: term.label },
+    signatures,
+    chunk,
+    nextChunk: chunk + 1,
+    totalChunks,
+  });
 }

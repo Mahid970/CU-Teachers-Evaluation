@@ -23,6 +23,7 @@ type IssueData = {
   session: string;
   department: { slug: string; name: string };
   teachers: IssuableTeacher[];
+  chunkSize?: number;
 };
 
 type Choice = { slug: string; name: string };
@@ -40,7 +41,13 @@ declare global {
   }
 }
 
-export function VerifyFlow() {
+export function VerifyFlow({
+  clientId,
+  devLogin,
+}: {
+  clientId: string;
+  devLogin: boolean;
+}) {
   const [stage, setStage] = useState<"idle" | "working" | "choice" | "done" | "error">("idle");
   const [message, setMessage] = useState("");
   const [choices, setChoices] = useState<Choice[]>([]);
@@ -53,9 +60,7 @@ export function VerifyFlow() {
     [storedBundle],
   );
   const [devId, setDevId] = useState("24304043");
-
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  const devLogin = process.env.NEXT_PUBLIC_ALLOW_DEV_LOGIN === "1";
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
 
   async function verify(token: string, deptChoice?: string) {
     setStage("working");
@@ -84,7 +89,10 @@ export function VerifyFlow() {
       }
 
       const data = payload as IssueData;
-      const issued = await collectTokens(token, deptChoice, data);
+      setProgress({ done: 0, total: data.teachers.length });
+      const issued = await collectTokens(token, deptChoice, data, (done, total) =>
+        setProgress({ done, total }),
+      );
       setBundle(issued);
       setStage("done");
     } catch (error) {
@@ -184,9 +192,30 @@ export function VerifyFlow() {
       )}
 
       {stage === "working" && (
-        <div className="card flex items-center gap-3 p-6">
-          <Loader2 size={20} strokeWidth={1.5} className="animate-spin text-evergreen" />
-          <p>Signing your tokens — this takes a few seconds.</p>
+        <div className="card p-6">
+          <div className="flex items-center gap-3">
+            <Loader2 size={20} strokeWidth={1.5} className="animate-spin text-evergreen" />
+            <p>
+              Signing your tokens
+              {progress.total > 0 && (
+                <span className="numerals text-ink-muted">
+                  {" "}
+                  — {progress.done} of {progress.total}
+                </span>
+              )}
+            </p>
+          </div>
+          {progress.total > 0 && (
+            <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-paper-sunk">
+              <div
+                className="h-full rounded-full bg-evergreen transition-[width] duration-300"
+                style={{ width: `${(progress.done / progress.total) * 100}%` }}
+              />
+            </div>
+          )}
+          <p className="mt-3 text-xs text-ink-muted">
+            Your browser is doing the private part of this. Please keep this page open.
+          </p>
         </div>
       )}
 

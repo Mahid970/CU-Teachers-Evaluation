@@ -218,3 +218,26 @@ with all the security checks still passing.
 Removed a duplicate copy of the ID-codes file from the project root (the one
 inside the data folder is the one the site uses), and stopped tracking a local
 settings file that only applies to one machine.
+
+## 23. Going live on Cloudflare
+
+Moved off the laptop and onto real infrastructure.
+
+Created the production database and storage on Cloudflare, loaded all 1,019
+teachers, and deployed the site to a live address. Generated a signing key for
+every teacher for this term, stored locked with a master key kept in
+Cloudflare's secret store.
+
+Two changes were needed to make it work properly on the free plan:
+
+- **Token signing is now done in small batches.** A single request that signed
+  every teacher at once used too much processing time for the free plan, and a
+  dropped connection lost everything. The browser now collects tokens a few
+  teachers at a time, shows a progress bar, and saves them as they arrive. The
+  server decides which teachers each batch covers, so nobody can pile all their
+  tokens onto one teacher.
+- **Fetching only the keys actually needed.** The old code read all 1,019
+  teachers keys on every sign-in to use twenty of them.
+
+The site is live, the login is switched off until Google sign-in is set up, and
+there are no ratings in the real database yet — a clean start.

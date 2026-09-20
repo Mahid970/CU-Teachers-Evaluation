@@ -49,3 +49,6 @@ next-env.d.ts
 
 # Local editor/agent permissions, specific to one machine
 .claude/settings.local.json
+
+# Production secret backup — keep out of Git, move to a password manager
+.prod.vars

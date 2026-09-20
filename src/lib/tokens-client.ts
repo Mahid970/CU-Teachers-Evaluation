@@ -120,8 +120,11 @@ export type IssuableTeacher = {
 };
 
 /**
- * Blinds one nonce per teacher, asks the server to sign them, then unblinds.
- * The server sees only blinded values, so it cannot recognise the tokens later.
+ * Collects the student's tokens, a few teachers at a time.
+ *
+ * Each chunk is blinded in the browser, signed by a server that cannot see the
+ * secrets inside, and unblinded here. Chunks are saved as they arrive, so a
+ * dropped connection costs a few teachers rather than the whole set.
  */
 export async function collectTokens(
   idToken: string,
@@ -131,43 +134,12 @@ export async function collectTokens(
     session: string;
     department: { slug: string; name: string };
     teachers: IssuableTeacher[];
+    chunkSize?: number;
   },
+  onProgress?: (done: number, total: number) => void,
 ): Promise<TokenBundle> {
-  const requests = await Promise.all(
-    data.teachers.map((teacher) => createBlindRequest(teacher.id, teacher.publicKey)),
-  );
-
-  const response = await fetch("/api/issue", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      idToken,
-      deptChoice,
-      blinded: requests.map((r) => ({
-        teacherId: r.teacherId,
-        blinded: btoa(String.fromCharCode(...r.blinded)),
-      })),
-    }),
-  });
-
-  const payload = (await response.json()) as {
-    error?: string;
-    signatures?: { teacherId: string; blindSignature: string }[];
-  };
-  if (!response.ok || !payload.signatures) {
-    throw new Error(payload.error ?? "Tokens could not be issued.");
-  }
-
-  const keyByTeacher = new Map(data.teachers.map((t) => [t.id, t.publicKey]));
-  const tokens: RatingToken[] = [];
-  for (const signature of payload.signatures) {
-    const request = requests.find((r) => r.teacherId === signature.teacherId);
-    const publicKey = keyByTeacher.get(signature.teacherId);
-    if (!request || !publicKey) continue;
-    tokens.push(
-      await finalizeToken(request, publicKey, fromBase64(signature.blindSignature)),
-    );
-  }
+  const chunkSize = data.chunkSize ?? 4;
+  const total = data.teachers.length;
 
   const bundle: TokenBundle = {
     version: 1,
@@ -176,9 +148,76 @@ export async function collectTokens(
     department: data.department,
     session: data.session,
     issuedOn: new Date().toISOString().slice(0, 10),
-    tokens,
+    tokens: [],
     rated: [],
   };
+
+  const chunkCount = Math.ceil(total / chunkSize);
+  let firstError: string | null = null;
+
+  for (let chunk = 0; chunk < chunkCount; chunk += 1) {
+    const slice = data.teachers.slice(chunk * chunkSize, chunk * chunkSize + chunkSize);
+    const requests = await Promise.all(
+      slice.map((teacher) => createBlindRequest(teacher.id, teacher.publicKey)),
+    );
+
+    const response = await fetch("/api/issue", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        idToken,
+        deptChoice,
+        chunk,
+        blinded: requests.map((r) => ({
+          teacherId: r.teacherId,
+          blinded: btoa(String.fromCharCode(...r.blinded)),
+        })),
+      }),
+    });
+
+    const payload = (await response.json()) as {
+      error?: string;
+      alreadyIssued?: boolean;
+      nextChunk?: number;
+      signatures?: { teacherId: string; blindSignature: string }[];
+    };
+
+    if (!response.ok || !payload.signatures) {
+      // A chunk already issued on another device is skipped, not fatal: the
+      // student can still collect the teachers they have not been served.
+      if (payload.alreadyIssued) {
+        firstError ??= payload.error ?? null;
+        if (typeof payload.nextChunk === "number" && payload.nextChunk > chunk) {
+          chunk = payload.nextChunk - 1;
+        }
+        continue;
+      }
+      if (bundle.tokens.length === 0) {
+        throw new Error(payload.error ?? "Tokens could not be issued.");
+      }
+      firstError ??= payload.error ?? null;
+      break;
+    }
+
+    const keyByTeacher = new Map(slice.map((t) => [t.id, t.publicKey]));
+    for (const signature of payload.signatures) {
+      const request = requests.find((r) => r.teacherId === signature.teacherId);
+      const publicKey = keyByTeacher.get(signature.teacherId);
+      if (!request || !publicKey) continue;
+      bundle.tokens.push(
+        await finalizeToken(request, publicKey, fromBase64(signature.blindSignature)),
+      );
+    }
+
+    // Saved as we go, so a crash or a closed tab keeps what was collected.
+    saveBundle(bundle);
+    onProgress?.(bundle.tokens.length, total);
+  }
+
+  if (bundle.tokens.length === 0) {
+    throw new Error(firstError ?? "No tokens could be issued.");
+  }
+
   saveBundle(bundle);
   return bundle;
 }
