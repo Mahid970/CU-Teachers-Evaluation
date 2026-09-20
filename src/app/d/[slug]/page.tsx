@@ -38,7 +38,7 @@ export default async function DepartmentPage({ params }: PageProps<"/d/[slug]">)
       : null;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14">
+    <div className="mx-auto max-w-3xl px-4 py-14">
       <Link
         href="/faculties"
         className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-brand"

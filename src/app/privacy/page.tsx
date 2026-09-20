@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { X } from "lucide-react";
 import { TokenPool } from "@/components/token-pool";
 import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
 
@@ -32,7 +33,9 @@ export default function PrivacyPage() {
           "Analytics that track individuals",
         ].map((item) => (
           <li key={item} className="flex items-start gap-3">
-            <span className="text-low">✕</span>
+            <span className="ledger-cross" aria-hidden="true">
+              <X size={13} strokeWidth={2.5} />
+            </span>
             <span className="line-through">{item}</span>
           </li>
         ))}

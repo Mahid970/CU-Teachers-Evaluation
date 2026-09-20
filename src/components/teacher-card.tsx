@@ -1,6 +1,7 @@
 import { ViewTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { PHOTO_PREFIX, type TeacherListItem } from "@/lib/db";
 import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
 import { StarRow } from "./stars";
@@ -61,8 +62,12 @@ export function TeacherAvatar({
 }
 
 /**
- * One teacher, as a scoreboard row: rank and score are the largest things in
- * it, the name sits between them, and everything else is quiet.
+ * One teacher, as a scoreboard row.
+ *
+ * Rank and score are the two largest things in it and sit at opposite ends; the
+ * name spans the gap between them. Everything that merely qualifies the name —
+ * the post, the department — is folded onto a single quiet line, so the row is
+ * three lines tall instead of four and a list of them scans as a table.
  */
 export function TeacherRow({
   teacher,
@@ -73,25 +78,25 @@ export function TeacherRow({
 }) {
   const rated = teacher.n > 0;
   return (
-    <Link href={`/t/${teacher.id}`} className="row-link flex items-center gap-4 p-4">
+    <Link href={`/t/${teacher.id}`} className="row-link teacher-row">
       {rank !== undefined && (
-        <span
-          className="score w-8 shrink-0 text-2xl"
-          style={{ color: rank <= 3 ? "var(--score)" : "var(--ink-muted)" }}
-        >
+        <span className="rank-badge" data-lead={rank <= 3 ? "true" : undefined}>
           {rank}
         </span>
       )}
 
-      <TeacherAvatar teacher={teacher} morphId={teacher.id} />
+      <TeacherAvatar teacher={teacher} morphId={teacher.id} size={52} />
 
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">{teacher.name}</p>
-        <p className="truncate text-sm text-ink-muted">{teacher.designation}</p>
-        <p className="truncate text-sm text-ink-muted">{teacher.dept_name}</p>
+        <p className="teacher-name truncate">{teacher.name}</p>
+        <p className="teacher-meta truncate">
+          {teacher.designation}
+          <span className="meta-dot" aria-hidden="true" />
+          {teacher.dept_name}
+        </p>
       </div>
 
-      <div className="shrink-0 text-right">
+      <div className="teacher-figures">
         {rated ? (
           <>
             {/* In a ranked list, one decimal ties constantly and the order
@@ -99,10 +104,8 @@ export function TeacherRow({
             <p className="score text-2xl">
               {teacher.score.toFixed(rank === undefined ? 1 : 2)}
             </p>
-            <div className="mt-1 flex justify-end">
-              <StarRow value={teacher.score} size={13} showValue={false} />
-            </div>
-            <p className="numerals mt-1 text-xs text-ink-muted">
+            <StarRow value={teacher.score} size={12} showValue={false} />
+            <p className="numerals text-xs text-ink-muted">
               {teacher.n} rating{teacher.n === 1 ? "" : "s"}
             </p>
           </>
@@ -112,6 +115,13 @@ export function TeacherRow({
           </p>
         )}
       </div>
+
+      <ChevronRight
+        className="row-chevron"
+        size={18}
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
     </Link>
   );
 }

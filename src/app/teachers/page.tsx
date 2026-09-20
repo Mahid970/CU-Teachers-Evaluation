@@ -15,9 +15,9 @@ export default async function TeachersPage() {
   const teachers = await getAllTeachers();
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14">
+    <div className="mx-auto max-w-3xl px-4 py-14">
       <h1 className="display text-4xl">All teachers</h1>
-      <p className="mt-3 max-w-2xl text-sm text-ink-muted">
+      <p className="mt-3 text-sm text-ink-muted">
         Every teacher listed on the public pages of cu.ac.bd, {teachers.length} in
         all. Ratings appear once a teacher has at least {MIN_RATINGS_TO_SHOW} of
         them; below that the numbers stay hidden so no one can be identified from

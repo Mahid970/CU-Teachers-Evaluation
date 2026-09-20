@@ -405,3 +405,41 @@ the way a printed map carries its title.
 footer. The credit is not decoration — the map data is free to use on the
 condition that it is credited — so it has to appear somewhere on the site, but it
 does not have to sit on the drawing.
+
+## 31. The university crest, a name, and icons
+
+**The site is now called CU Teachers Evaluation**, in the tab title, the bar and
+the footer.
+
+**The crest.** The university publishes its crest as line art. A picture of it
+would be soft in the bar and could not follow the light and dark themes, so it
+is traced once into an outline — a script does this, so the source image can be
+replaced and the outline rebuilt. The bar and the footer draw that outline in
+whatever colour the text around it is, which is why it is black on the light
+theme and white on the dark one without a second file.
+
+The browser tab gets its own version. At sixteen pixels the book, the atom and
+the line of Bengali inside the crest turn to mush whatever you do, so the tab
+icon is a simpler tracing on a filled green tile, which keeps a recognisable
+shape at that size and stays visible against light and dark browser chrome.
+There is an iPhone home-screen version too.
+
+**The bar.** Home has been added, and every item now carries an icon, so on a
+phone the words drop away and the icons stay — every destination is still one
+tap away instead of hidden behind a menu. The bar also marks where you are, and
+keeps marking it after you follow a row into a teacher or a department.
+
+**Icons, where they mean something.** The numbers under the hero, the three
+steps, the six things a teacher is rated on, each faculty, the crossed-out list
+of what is never stored, the empty states and the buttons. Not on decoration.
+
+**The teacher card.** Post and department used to take a line each; they now
+share one, with a dot between, so a row is three lines instead of four and a
+list of them scans like a table. The rank is a badge rather than a loose number,
+gold for the top three. An arrow on the right says the row leads somewhere.
+
+**The list is narrower.** A row is a name and a score; run across the full width
+of the page it was mostly gap. The leaderboard, the directory and each
+department now set their rows in a column.
+
+Also fixed: "1 departments" under Law.

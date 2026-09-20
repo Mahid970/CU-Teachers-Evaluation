@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
+import { FacultyIcon } from "@/components/faculty-icon";
 import { StarRow } from "@/components/stars";
 import { DEPARTMENT_BY_SLUG, FACULTIES } from "@/lib/departments";
 import { getDepartmentSummaries } from "@/lib/db";
@@ -21,7 +23,7 @@ export default async function FacultiesPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-14">
-            <h1 className="display text-4xl">Faculties &amp; departments</h1>
+      <h1 className="display text-4xl">Faculties &amp; departments</h1>
       <p className="mt-3 max-w-2xl text-sm text-ink-muted">
         Nine faculties, {summaries.length} departments, institutes and centres. The
         code beside each department is the one that appears in student IDs.
@@ -35,7 +37,12 @@ export default async function FacultiesPage() {
           return (
             <section key={faculty.key} id={faculty.key} className="reveal scroll-mt-24">
               <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-hairline pb-3">
-                <h2 className="display text-3xl">{faculty.name}</h2>
+                <h2 className="display flex items-center gap-3 text-3xl">
+                  <span className="stat-icon" aria-hidden="true">
+                    <FacultyIcon facultyKey={faculty.key} size={20} />
+                  </span>
+                  {faculty.name}
+                </h2>
                 <p className="numerals text-sm text-ink-muted">
                   {teachers} teachers, ID code {faculty.code}
                 </p>
@@ -53,9 +60,12 @@ export default async function FacultiesPage() {
                           </span>
                         )}
                       </div>
-                      <p className="numerals mt-2 text-xs text-ink-muted">
-                        {d.teachers} teacher{d.teachers === 1 ? "" : "s"}
-                        {d.rated_teachers > 0 && `, ${d.rated_teachers} rated`}
+                      <p className="numerals mt-2 flex items-center justify-between text-xs text-ink-muted">
+                        <span>
+                          {d.teachers} teacher{d.teachers === 1 ? "" : "s"}
+                          {d.rated_teachers > 0 && `, ${d.rated_teachers} rated`}
+                        </span>
+                        <ArrowUpRight className="row-arrow" size={15} aria-hidden="true" />
                       </p>
                       {d.avg_overall != null && (
                         <div className="mt-3">

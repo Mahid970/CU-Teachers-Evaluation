@@ -1,4 +1,15 @@
 import Link from "next/link";
+import {
+  ArrowUpRight,
+  Building2,
+  IdCard,
+  LogIn,
+  Star,
+  Users,
+  VenetianMask,
+  X,
+} from "lucide-react";
+import { FacultyIcon } from "@/components/faculty-icon";
 import { TeacherBrowser } from "@/components/teacher-browser";
 import { CountUp } from "@/components/count-up";
 import { CampusMap } from "@/components/campus-map";
@@ -58,25 +69,30 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <dl className="reveal mt-14 flex flex-wrap gap-x-14 gap-y-6 border-t border-hairline pt-6">
-          <div>
-            <dd className="score text-3xl"><CountUp value={counts.teachers} /></dd>
-            <dt className="mt-1 text-sm text-ink-muted">Teachers listed</dt>
-          </div>
-          <div>
-            <dd className="score text-3xl"><CountUp value={counts.departments} /></dd>
-            <dt className="mt-1 text-sm text-ink-muted">Departments</dt>
-          </div>
-          <div>
-            <dd className="score text-3xl"><CountUp value={counts.ratings} /></dd>
-            <dt className="mt-1 text-sm text-ink-muted">Ratings so far</dt>
-          </div>
+        <dl className="reveal mt-14 grid gap-x-10 gap-y-8 border-t border-hairline pt-8 sm:grid-cols-3">
+          {[
+            { Icon: Users, value: counts.teachers, label: "Teachers listed" },
+            { Icon: Building2, value: counts.departments, label: "Departments" },
+            { Icon: Star, value: counts.ratings, label: "Ratings so far" },
+          ].map(({ Icon, value, label }) => (
+            <div key={label} className="flex items-center gap-4">
+              <span className="stat-icon" aria-hidden="true">
+                <Icon size={20} strokeWidth={1.5} />
+              </span>
+              <div>
+                <dd className="score text-3xl"><CountUp value={value} /></dd>
+                <dt className="mt-1 text-sm text-ink-muted">{label}</dt>
+              </div>
+            </div>
+          ))}
         </dl>
       </section>
 
       {/* ---- Leaderboard ------------------------------------------------ */}
       <section className="border-t border-hairline bg-surface-sunk/40">
-        <div className="mx-auto max-w-6xl px-4 py-16">
+        {/* A row is a name and a score. Run across the full page they are
+            mostly gap, so the board keeps to a column. */}
+        <div className="mx-auto max-w-3xl px-4 py-16">
           <div className="reveal flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="display text-3xl">Highest rated right now</h2>
@@ -112,22 +128,30 @@ export default async function HomePage() {
         <ol className="mt-8 grid gap-8 md:grid-cols-3">
           {[
             {
+              Icon: LogIn,
               title: "Sign in once",
               body: "Your @std.cu.ac.bd account proves you study here. Nothing is emailed, and no login is kept.",
             },
             {
+              Icon: IdCard,
               title: "Your department appears",
               body: "Your ID number says where you belong, so you only rate the teachers who taught you.",
             },
             {
+              Icon: VenetianMask,
               title: "Rate anonymously",
               body: "Your browser holds signed tokens that prove you may rate, without saying who you are.",
             },
-          ].map((step, i) => (
-            <li key={step.title} className="reveal border-t-2 border-ink pt-4">
-              <span className="score text-lg text-ink-muted">{i + 1}</span>
-              <h3 className="display mt-2 text-xl">{step.title}</h3>
-              <p className="mt-2 text-ink-muted">{step.body}</p>
+          ].map(({ Icon, title, body }, i) => (
+            <li key={title} className="reveal border-t-2 border-ink pt-4">
+              <div className="flex items-center gap-3">
+                <span className="stat-icon" aria-hidden="true">
+                  <Icon size={20} strokeWidth={1.5} />
+                </span>
+                <span className="score text-lg text-ink-muted">{i + 1}</span>
+              </div>
+              <h3 className="display mt-3 text-xl">{title}</h3>
+              <p className="mt-2 text-ink-muted">{body}</p>
             </li>
           ))}
         </ol>
@@ -166,8 +190,8 @@ export default async function HomePage() {
                     key={item}
                     className="flex items-baseline gap-3 border-b border-hairline pb-3 text-ink-muted"
                   >
-                    <span aria-hidden="true" className="text-low">
-                      ✕
+                    <span className="ledger-cross" aria-hidden="true">
+                      <X size={13} strokeWidth={2.5} />
                     </span>
                     <span className="line-through">{item}</span>
                   </li>
@@ -192,12 +216,16 @@ export default async function HomePage() {
             return (
               <li key={f.key} className="reveal">
                 <Link href={`/faculties#${f.key}`} className="row-link block p-5">
-                  <div className="flex items-baseline justify-between gap-4">
-                    <h3 className="display text-lg leading-snug">{f.shortName}</h3>
+                  <div className="flex items-center justify-between gap-4">
+                    <h3 className="display flex items-center gap-2.5 text-lg leading-snug">
+                      <FacultyIcon facultyKey={f.key} className="text-brand" />
+                      {f.shortName}
+                    </h3>
                     <span className="score text-lg text-ink-muted">{entry.teachers}</span>
                   </div>
-                  <p className="mt-2 text-sm text-ink-muted">
-                    {entry.depts} departments
+                  <p className="mt-2 flex items-center justify-between text-sm text-ink-muted">
+                    {entry.depts} department{entry.depts === 1 ? "" : "s"}
+                    <ArrowUpRight className="row-arrow" size={16} strokeWidth={1.75} aria-hidden="true" />
                   </p>
                 </Link>
               </li>

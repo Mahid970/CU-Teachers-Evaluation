@@ -1,7 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  BookOpenCheck,
+  CalendarClock,
+  Clock,
+  DoorOpen,
+  Gauge,
+  Hourglass,
+  Lightbulb,
+  MessagesSquare,
+  Repeat2,
+  Scale,
+  Star,
+} from "lucide-react";
 import { StarRow } from "@/components/stars";
 import { TeacherAvatar } from "@/components/teacher-card";
 import { DEPARTMENT_BY_SLUG, FACULTY_BY_KEY } from "@/lib/departments";
@@ -9,6 +22,16 @@ import { getTeacher, getTeachersByDept } from "@/lib/db";
 import { CRITERIA, MIN_RATINGS_TO_SHOW, TAGS } from "@/lib/rating";
 
 export const revalidate = 300;
+
+/** What each criterion is about, so the six bars are scannable apart. */
+const CRITERION_ICON = {
+  clarity: Lightbulb,
+  knowledge: BookOpenCheck,
+  punctuality: Clock,
+  fairness: Scale,
+  accessibility: DoorOpen,
+  engagement: MessagesSquare,
+} as const;
 
 export async function generateMetadata({
   params,
@@ -86,13 +109,22 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
               <ul className="mt-6 space-y-5">
                 {CRITERIA.map((criterion) => {
                   const value = stats[`avg_${criterion.key}` as keyof typeof stats] as number;
+                  const Icon = CRITERION_ICON[criterion.key];
                   return (
                     <li key={criterion.key} className="reveal">
                       <div className="flex items-baseline justify-between gap-4">
-                        <p className="font-medium">{criterion.label}</p>
+                        <p className="flex items-center gap-2 font-medium">
+                          <Icon
+                            size={16}
+                            strokeWidth={1.75}
+                            className="text-brand"
+                            aria-hidden="true"
+                          />
+                          {criterion.label}
+                        </p>
                         <p className="score text-lg">{value.toFixed(1)}</p>
                       </div>
-                      <p className="mb-2 text-sm text-ink-muted">{criterion.hint}</p>
+                      <p className="mb-2 pl-6 text-sm text-ink-muted">{criterion.hint}</p>
                       {/* The lowest possible score is 1, so the bar runs 1 to 5.
                           Measuring from 0 would leave every teacher looking full. */}
                       <div className="bar-track h-2 w-full">
@@ -154,6 +186,9 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
             </>
           ) : (
             <div className="panel p-8">
+              <span className="stat-icon mb-4" aria-hidden="true">
+                <Hourglass size={20} strokeWidth={1.5} />
+              </span>
               <h2 className="display text-2xl">Not enough ratings yet</h2>
               <p className="prose-measure mt-3 text-ink-muted">
                 Scores stay hidden until {MIN_RATINGS_TO_SHOW} students have rated
@@ -161,6 +196,7 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
                 Every score here comes from a verified student of this department.
               </p>
               <Link href="/verify" className="btn btn-primary mt-6">
+                <Star size={16} strokeWidth={2} aria-hidden="true" />
                 Be one of the first to rate
               </Link>
             </div>
@@ -172,11 +208,19 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
             <div className="reveal panel p-6">
               <dl className="grid grid-cols-2 gap-6">
                 <div>
-                  <dd className="score text-3xl">{Math.round(stats.take_again_pct)}%</dd>
+                  <span className="stat-icon" aria-hidden="true">
+                    <Repeat2 size={20} strokeWidth={1.5} />
+                  </span>
+                  <dd className="score mt-3 text-3xl">
+                    {Math.round(stats.take_again_pct)}%
+                  </dd>
                   <dt className="mt-1 text-sm text-ink-muted">Would take again</dt>
                 </div>
                 <div>
-                  <dd className="score text-3xl">
+                  <span className="stat-icon" aria-hidden="true">
+                    <Gauge size={20} strokeWidth={1.5} />
+                  </span>
+                  <dd className="score mt-3 text-3xl">
                     {stats.avg_difficulty.toFixed(1)}
                     <span className="text-lg text-ink-muted">/5</span>
                   </dd>
@@ -187,13 +231,20 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
                 Difficulty stands on its own. A hard course is not a bad teacher.
               </p>
               <hr className="hairline my-5" />
-              <p className="text-sm text-ink-muted">
+              <p className="flex items-start gap-2 text-sm text-ink-muted">
+                <CalendarClock
+                  size={15}
+                  strokeWidth={1.75}
+                  className="mt-0.5 shrink-0"
+                  aria-hidden="true"
+                />
                 Scores refresh once a day, so no one can tell when a rating arrived.
               </p>
             </div>
           )}
 
           <Link href="/verify" className="btn btn-primary mt-4 w-full">
+            <Star size={16} strokeWidth={2} aria-hidden="true" />
             {stats ? "Rate this teacher" : "Sign in to rate"}
           </Link>
 

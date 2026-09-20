@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, Download, Trash2, Upload } from "lucide-react";
+import { Check, ChevronRight, Download, Trash2, Upload } from "lucide-react";
 import {
   LAST_TERM_KEY,
   type TokenBundle,
@@ -149,7 +149,10 @@ export function MyTokens() {
                     {teacher?.deptName ? `, ${teacher.deptName}` : ""}
                   </span>
                 </span>
-                <span className="text-sm font-semibold text-brand">Rate →</span>
+                <span className="flex items-center gap-1 text-sm font-semibold text-brand">
+                  Rate
+                  <ChevronRight className="row-nudge" size={16} strokeWidth={2} aria-hidden="true" />
+                </span>
               </Link>
             </li>
           );

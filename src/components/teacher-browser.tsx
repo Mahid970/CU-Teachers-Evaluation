@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { ChevronDown, Search, SearchX } from "lucide-react";
 import type { TeacherListItem } from "@/lib/db";
 import { FACULTIES } from "@/lib/departments";
 import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
@@ -88,9 +88,12 @@ export function TeacherBrowser({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-3">
+      {/* In a column this narrow the three controls cannot share a line without
+          one of them wrapping awkwardly, so search takes the first row and the
+          two that change the ordering take the second. */}
+      <div className="space-y-3">
         {showSearch && (
-          <label className="relative w-full sm:w-auto sm:min-w-[260px] sm:flex-1">
+          <label className="relative block">
             <Search
               size={16}
               className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted"
@@ -109,43 +112,45 @@ export function TeacherBrowser({
           </label>
         )}
 
-        <div className="-mx-4 flex w-[calc(100%+2rem)] items-center gap-1 overflow-x-auto px-4 sm:mx-0 sm:w-auto sm:px-0">
-          {SORTS.map((s) => (
-            <button
-              key={s.key}
-              type="button"
-              onClick={() => {
-                setSort(s.key);
-                setShown(limit ?? PAGE);
-              }}
-              aria-pressed={sort === s.key}
-              className="segment"
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="-mx-4 flex w-[calc(100%+2rem)] items-center gap-1 overflow-x-auto px-4 sm:mx-0 sm:w-auto sm:flex-1 sm:px-0">
+            {SORTS.map((s) => (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => {
+                  setSort(s.key);
+                  setShown(limit ?? PAGE);
+                }}
+                aria-pressed={sort === s.key}
+                className="segment"
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
 
-        {showFilters && (
-          <label className="w-full sm:w-auto">
-            <span className="sr-only">Filter by faculty</span>
-            <select
-              value={faculty}
-              onChange={(e) => {
-                setFaculty(e.target.value);
-                setShown(limit ?? PAGE);
-              }}
-              className="field sm:w-auto"
-            >
-              <option value="all">All faculties</option>
-              {FACULTIES.map((f) => (
-                <option key={f.key} value={f.key}>
-                  {f.shortName}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
+          {showFilters && (
+            <label className="w-full sm:w-auto">
+              <span className="sr-only">Filter by faculty</span>
+              <select
+                value={faculty}
+                onChange={(e) => {
+                  setFaculty(e.target.value);
+                  setShown(limit ?? PAGE);
+                }}
+                className="field sm:w-auto"
+              >
+                <option value="all">All faculties</option>
+                {FACULTIES.map((f) => (
+                  <option key={f.key} value={f.key}>
+                    {f.shortName}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+        </div>
       </div>
 
       <p className="mt-4 text-sm text-ink-muted" aria-live="polite">
@@ -155,6 +160,9 @@ export function TeacherBrowser({
 
       {visible.length === 0 ? (
         <div className="panel mt-4 p-10 text-center">
+          <span className="stat-icon mx-auto mb-4" aria-hidden="true">
+            <SearchX size={20} strokeWidth={1.5} />
+          </span>
           <p className="display text-xl">Nothing here yet</p>
           <p className="prose-measure mx-auto mt-2 text-ink-muted">
             {emptyNote ??
@@ -179,6 +187,7 @@ export function TeacherBrowser({
               onClick={() => setShown((n) => n + PAGE)}
               className="btn btn-quiet mt-4 w-full"
             >
+              <ChevronDown size={16} strokeWidth={2} aria-hidden="true" />
               Show {Math.min(remaining, PAGE)} more
               <span className="numerals text-ink-muted">({remaining} left)</span>
             </button>

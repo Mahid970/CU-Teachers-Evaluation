@@ -1,4 +1,4 @@
-# CU Rate — teacher evaluation for the University of Chittagong
+# CU Teachers Evaluation — teacher ratings for the University of Chittagong
 
 Students rate their teachers anonymously. The site proves a rater is a real CU
 student through their `ID@std.cu.ac.bd` Google account, works out their

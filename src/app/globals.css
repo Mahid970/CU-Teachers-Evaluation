@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
-  CU Rate — "Scoreboard".
+  CU Teachers Evaluation — "Scoreboard".
 
   The content is ranks, scores and distributions, so numerals carry the
   personality: Archivo at expanded width, set large. Everything around them is
@@ -200,6 +200,114 @@ body {
     transform: translateY(0);
   }
 
+  /* ---- One teacher --------------------------------------------------- */
+
+  .teacher-row {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.85rem 1rem;
+  }
+
+  /* A place on the board, not just a number in the margin. */
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    border-radius: 8px;
+    background: var(--surface-sunk);
+    color: var(--ink-muted);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-variation-settings: "wdth" 112;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.9rem;
+    letter-spacing: -0.02em;
+    transition:
+      background-color 160ms var(--ease),
+      color 160ms var(--ease);
+  }
+
+  .rank-badge[data-lead="true"] {
+    background: var(--score);
+    color: #1b1400;
+  }
+
+  .teacher-name {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* Block, not flex: a flex line cannot be truncated with an ellipsis, and on a
+     phone this line always runs out of room. */
+  .teacher-meta {
+    display: block;
+    margin-top: 0.1rem;
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+  }
+
+  /* One line for post and department, with a dot between rather than a second
+     line: the row is a name and a score, and the rest is a caption. */
+  .meta-dot {
+    display: inline-block;
+    width: 3px;
+    height: 3px;
+    vertical-align: middle;
+    margin: 0 0.5rem 0.1rem;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.5;
+  }
+
+  .teacher-figures {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .row-chevron {
+    flex-shrink: 0;
+    color: color-mix(in srgb, var(--ink-muted) 45%, transparent);
+    transition:
+      transform 200ms var(--ease),
+      color 160ms var(--ease);
+  }
+
+  .row-link:hover .row-chevron {
+    color: var(--brand);
+    transform: translateX(3px);
+  }
+
+  /* Same movement, but the colour comes from the label it sits beside. */
+  .row-nudge {
+    flex-shrink: 0;
+    transition: transform 200ms var(--ease);
+  }
+
+  .row-link:hover .row-nudge {
+    transform: translateX(3px);
+  }
+
+  /* On a phone the meta line and the score column fight for the same width, so
+     the caption gives way first. */
+  @media (max-width: 400px) {
+    .teacher-row {
+      gap: 0.65rem;
+      padding: 0.75rem;
+    }
+
+    .row-chevron {
+      display: none;
+    }
+  }
+
   /* The photo leans in a little when you point at the row. */
   .row-link .avatar img {
     transition: transform 320ms var(--ease);
@@ -221,6 +329,49 @@ body {
   .hairline {
     border: 0;
     border-top: 1px solid var(--hairline);
+  }
+
+  /* ---- Icons ------------------------------------------------------------ */
+
+  /* Icons sit in a tile rather than loose against the text, so a row of them
+     lines up whatever shape each one happens to be. */
+  .stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    border-radius: 9px;
+    background: var(--brand-wash);
+    color: var(--brand);
+  }
+
+  .ledger-cross {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--low) 16%, transparent);
+    color: var(--low);
+    transform: translateY(0.15rem);
+  }
+
+  /* Leads somewhere: the arrow steps in that direction when you point at it. */
+  .row-arrow {
+    flex-shrink: 0;
+    color: var(--ink-muted);
+    transition:
+      transform 200ms var(--ease),
+      color 160ms var(--ease);
+  }
+
+  .row-link:hover .row-arrow {
+    color: var(--brand);
+    transform: translate(2px, -2px);
   }
 
   /* ---- Controls --------------------------------------------------------- */
@@ -273,6 +424,12 @@ body {
     border-color: var(--ink);
   }
 
+  .btn-compact {
+    min-height: 0;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.875rem;
+  }
+
   .btn:active {
     transform: translateY(1px);
   }
@@ -297,27 +454,127 @@ body {
     background-size: 100% 1px;
   }
 
-  .nav-link {
-    position: relative;
-    transition: color 160ms var(--ease);
+  /* ---- The bar ---------------------------------------------------------- */
+
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 1px solid var(--hairline);
+    background: color-mix(in srgb, var(--ground) 85%, transparent);
+    backdrop-filter: saturate(160%) blur(10px);
   }
 
+  .site-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+  }
+
+  /* The crest is masked, not drawn, so it inherits the text colour and needs
+     no second file for the dark theme. */
+  .site-crest {
+    display: block;
+    height: 2.25rem;
+    aspect-ratio: 429 / 581;
+    background: currentColor;
+    -webkit-mask: url("/cu-logo.svg") no-repeat center / contain;
+    mask: url("/cu-logo.svg") no-repeat center / contain;
+    transition: transform 260ms var(--ease);
+  }
+
+  .site-mark:hover .site-crest {
+    transform: translateY(-1px) scale(1.03);
+  }
+
+  .site-wordmark {
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-variation-settings: "wdth" 108;
+    font-size: 0.95rem;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 420px) {
+    .site-wordmark {
+      display: none;
+    }
+  }
+
+  /* The footer has room to set the lockup properly. */
+  .site-mark-lg .site-crest {
+    height: 3.25rem;
+  }
+
+  .site-mark-lg .site-wordmark {
+    display: flex;
+    font-size: 1.3rem;
+  }
+
+  .nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--ink-muted);
+    transition:
+      color 160ms var(--ease),
+      background-color 160ms var(--ease);
+  }
+
+  .nav-link:hover {
+    color: var(--ink);
+    background: var(--surface-sunk);
+  }
+
+  .nav-link[data-active="true"] {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* The page you are on keeps a rule under it; hovering anything else draws
+     one in from the left. */
   .nav-link::after {
     content: "";
     position: absolute;
-    left: 0.75rem;
-    right: 0.75rem;
-    bottom: 0.35rem;
-    height: 1px;
-    background: currentColor;
+    left: 0.65rem;
+    right: 0.65rem;
+    bottom: 0.2rem;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--brand);
     transform: scaleX(0);
     transform-origin: left;
-    transition: transform 200ms var(--ease);
+    transition: transform 220ms var(--ease);
   }
 
   .nav-link:hover::after,
-  .nav-link:focus-visible::after {
+  .nav-link:focus-visible::after,
+  .nav-link[data-active="true"]::after {
     transform: scaleX(1);
+  }
+
+  @media (max-width: 640px) {
+    .nav-label {
+      display: none;
+    }
+
+    .nav-link {
+      padding: 0.5rem;
+    }
+
+    .nav-link::after {
+      left: 0.35rem;
+      right: 0.35rem;
+    }
   }
 
   .theme-toggle svg {
