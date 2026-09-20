@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Reveal, Stagger, StaggerItem } from "@/components/motion";
 import { StarRow } from "@/components/stars";
 import { DEPARTMENT_BY_SLUG, FACULTIES } from "@/lib/departments";
 import { getDepartmentSummaries } from "@/lib/db";
@@ -23,8 +21,7 @@ export default async function FacultiesPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-14">
-      <p className="section-marker">Browse</p>
-      <h1 className="display mt-2 text-5xl">Faculties &amp; departments</h1>
+            <h1 className="display text-4xl">Faculties &amp; departments</h1>
       <p className="mt-3 max-w-2xl text-sm text-ink-muted">
         Nine faculties, {summaries.length} departments, institutes and centres. The
         code beside each department is the one that appears in student IDs.
@@ -37,43 +34,38 @@ export default async function FacultiesPage() {
 
           return (
             <section key={faculty.key} id={faculty.key} className="scroll-mt-24">
-              <Reveal>
-                <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-rule pb-3">
-                  <h2 className="display text-3xl">{faculty.name}</h2>
-                  <p className="numerals text-sm text-ink-muted">
-                    Faculty code {faculty.code} · {teachers} teachers
-                  </p>
-                </div>
-              </Reveal>
+              <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-hairline pb-3">
+                <h2 className="display text-3xl">{faculty.name}</h2>
+                <p className="numerals text-sm text-ink-muted">
+                  {teachers} teachers, ID code {faculty.code}
+                </p>
+              </div>
 
-              <Stagger className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {depts.map((d) => (
-                  <StaggerItem key={d.slug}>
-                    <Link href={`/d/${d.slug}`} className="card card-hover block h-full p-5">
+                  <li key={d.slug}>
+                    <Link href={`/d/${d.slug}`} className="row-link block h-full p-5">
                       <div className="flex items-start justify-between gap-3">
                         <h3 className="display text-lg leading-tight">{d.name}</h3>
                         {d.slug && (
-                          <span className="numerals shrink-0 text-xs text-ink-muted">
+                          <span className="score shrink-0 text-sm text-ink-muted">
                             {summaryCode(d.slug)}
                           </span>
                         )}
                       </div>
                       <p className="numerals mt-2 text-xs text-ink-muted">
                         {d.teachers} teacher{d.teachers === 1 ? "" : "s"}
-                        {d.rated_teachers > 0 && ` · ${d.rated_teachers} rated`}
+                        {d.rated_teachers > 0 && `, ${d.rated_teachers} rated`}
                       </p>
                       {d.avg_overall != null && (
                         <div className="mt-3">
                           <StarRow value={d.avg_overall} size={14} />
                         </div>
                       )}
-                      <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-evergreen">
-                        View teachers <ArrowRight size={13} strokeWidth={1.5} />
-                      </span>
                     </Link>
-                  </StaggerItem>
+                  </li>
                 ))}
-              </Stagger>
+              </ul>
             </section>
           );
         })}

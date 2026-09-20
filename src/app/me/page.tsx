@@ -10,8 +10,7 @@ export const metadata: Metadata = {
 export default function MePage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
-      <p className="section-marker">This device only</p>
-      <h1 className="display mt-2 text-5xl">My ratings</h1>
+      <h1 className="display text-4xl">My ratings</h1>
       <p className="mt-4 max-w-xl text-ink-muted">
         This page is built entirely from what is stored in your browser. Nothing on
         it is known to our server, and it looks empty on any other device.

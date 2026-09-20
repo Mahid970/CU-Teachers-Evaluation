@@ -6,7 +6,7 @@ import { StarRow } from "./stars";
 
 export function TeacherAvatar({
   teacher,
-  size = 64,
+  size = 56,
 }: {
   teacher: Pick<TeacherWithStats, "name" | "photo_url">;
   size?: number;
@@ -21,7 +21,7 @@ export function TeacherAvatar({
 
   return (
     <div
-      className="relative shrink-0 overflow-hidden border border-rule bg-evergreen-wash"
+      className="relative shrink-0 overflow-hidden rounded-lg bg-brand-wash"
       style={{ width: size, height: size }}
     >
       {teacher.photo_url ? (
@@ -30,13 +30,13 @@ export function TeacherAvatar({
           alt=""
           width={size}
           height={size}
-          className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.03]"
+          className="h-full w-full object-cover"
           unoptimized
         />
       ) : (
         <span
-          className="display flex h-full w-full items-center justify-center text-evergreen"
-          style={{ fontSize: size / 2.8 }}
+          className="display flex h-full w-full items-center justify-center text-brand"
+          style={{ fontSize: size / 2.9 }}
           aria-hidden="true"
         >
           {initials}
@@ -46,7 +46,11 @@ export function TeacherAvatar({
   );
 }
 
-export function TeacherCard({
+/**
+ * One teacher, as a scoreboard row: rank and score are the largest things in
+ * it, the name sits between them, and everything else is quiet.
+ */
+export function TeacherRow({
   teacher,
   rank,
 }: {
@@ -54,35 +58,44 @@ export function TeacherCard({
   rank?: number;
 }) {
   return (
-    <Link
-      href={`/t/${teacher.id}`}
-      className="card card-hover flex items-start gap-4 p-4"
-    >
+    <Link href={`/t/${teacher.id}`} className="row-link flex items-center gap-4 p-4">
       {rank !== undefined && (
-        <span className="numerals display mt-1 w-8 shrink-0 text-2xl text-amber">
+        <span
+          className="score w-8 shrink-0 text-2xl"
+          style={{ color: rank <= 3 ? "var(--score)" : "var(--ink-muted)" }}
+        >
           {rank}
         </span>
       )}
-      <TeacherAvatar teacher={teacher} />
-      <div className="min-w-0 flex-1">
-        <p className="display truncate text-lg leading-tight">{teacher.name}</p>
-        <p className="mt-0.5 truncate text-sm text-ink-muted">{teacher.designation}</p>
-        <p className="mt-1 truncate text-xs text-ink-muted">{teacher.dept_name}</p>
 
-        <div className="mt-3">
-          {teacher.stats ? (
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <StarRow value={teacher.stats.avg_overall} />
-              <span className="numerals text-xs text-ink-muted">
-                {teacher.stats.n} rating{teacher.stats.n === 1 ? "" : "s"}
-              </span>
-            </div>
-          ) : (
-            <p className="text-xs text-ink-muted">
-              Fewer than {MIN_RATINGS_TO_SHOW} ratings — results hidden
+      <TeacherAvatar teacher={teacher} />
+
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-semibold">{teacher.name}</p>
+        <p className="truncate text-sm text-ink-muted">{teacher.designation}</p>
+        <p className="truncate text-sm text-ink-muted">{teacher.dept_name}</p>
+      </div>
+
+      <div className="shrink-0 text-right">
+        {teacher.stats ? (
+          <>
+            {/* In a ranked list, one decimal ties constantly and the order
+                looks arbitrary, so show the precision the rank is based on. */}
+            <p className="score text-2xl">
+              {teacher.stats.bayesian_score.toFixed(rank === undefined ? 1 : 2)}
             </p>
-          )}
-        </div>
+            <div className="mt-1 flex justify-end">
+              <StarRow value={teacher.stats.bayesian_score} size={13} showValue={false} />
+            </div>
+            <p className="numerals mt-1 text-xs text-ink-muted">
+              {teacher.stats.n} rating{teacher.stats.n === 1 ? "" : "s"}
+            </p>
+          </>
+        ) : (
+          <p className="text-xs text-ink-muted">
+            Under {MIN_RATINGS_TO_SHOW} ratings
+          </p>
+        )}
       </div>
     </Link>
   );

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { StarInput } from "./stars";
-import { EASE } from "./motion";
 import { CRITERIA, type CriterionKey, MAX_TAGS, TAGS } from "@/lib/rating";
 import {
   LAST_TERM_KEY,
@@ -87,7 +86,7 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
 
   if (!token) {
     return (
-      <div className="card mt-10 p-7">
+      <div className="panel mt-10 p-7">
         <p className="display text-2xl">You need a token for this teacher</p>
         <p className="mt-2 text-sm text-ink-muted">
           Tokens are handed out once per term, per student, for the teachers of your
@@ -96,7 +95,7 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link href="/verify" className="btn btn-primary">Verify with Google</Link>
-          <Link href="/me" className="btn btn-ghost">Restore a backup</Link>
+          <Link href="/me" className="btn btn-quiet">Restore a backup</Link>
         </div>
       </div>
     );
@@ -107,14 +106,14 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: EASE }}
-        className="card relative mt-10 p-8"
+        transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] as const }}
+        className="panel relative mt-10 p-8"
       >
         <motion.span
-          initial={{ scale: 1.5, opacity: 0, rotate: 8 }}
-          animate={{ scale: 1, opacity: 1, rotate: 4 }}
-          transition={{ duration: 0.4, ease: EASE, delay: 0.1 }}
-          className="stamp absolute -top-3 right-6 bg-paper-raised"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.4, ease: [0.2, 0, 0, 1] as const, delay: 0.1 }}
+          className="absolute -top-3 right-6 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-surface"
         >
           Recorded
         </motion.span>
@@ -126,7 +125,7 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/me" className="btn btn-primary">Rate another teacher</Link>
-          <Link href={`/t/${teacherId}`} className="btn btn-ghost">See this teacher&apos;s page</Link>
+          <Link href={`/t/${teacherId}`} className="btn btn-quiet">See this teacher&apos;s page</Link>
         </div>
       </motion.div>
     );
@@ -134,8 +133,8 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
 
   return (
     <div className="mt-10">
-      <div className="card p-6 sm:p-7">
-        <p className="section-marker">Rate each of these</p>
+      <div className="panel p-6 sm:p-7">
+        <h2 className="display text-xl">Rate each of these</h2>
 
         <ul className="mt-5 space-y-6">
           {CRITERIA.map((criterion) => (
@@ -154,7 +153,7 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
           ))}
         </ul>
 
-        <hr className="rule my-7" />
+        <hr className="hairline my-6" />
 
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -199,8 +198,8 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
                   onClick={() => setTakeAgain(option.value)}
                   className={`border px-5 py-2 text-sm transition-colors ${
                     takeAgain === option.value
-                      ? "border-evergreen bg-evergreen text-paper-raised"
-                      : "border-rule hover:border-evergreen"
+                      ? "border-brand bg-brand text-paper-raised"
+                      : "border-hairline hover:border-brand"
                   }`}
                 >
                   {option.label}
@@ -234,7 +233,7 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
                       )
                     }
                     className={`chip transition-colors ${
-                      active ? "!border-evergreen !bg-evergreen text-paper-raised" : ""
+                      active ? "!border-brand !bg-brand text-paper-raised" : ""
                     }`}
                   >
                     {tag.label}
@@ -247,7 +246,7 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
       </div>
 
       {stage === "error" && (
-        <p className="mt-4 flex items-start gap-2 text-sm text-clay">
+        <p className="mt-4 flex items-start gap-2 text-sm text-low">
           <AlertCircle size={16} strokeWidth={1.5} className="mt-0.5 shrink-0" />
           {message}
         </p>

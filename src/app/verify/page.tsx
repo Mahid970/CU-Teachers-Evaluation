@@ -20,8 +20,7 @@ export default async function VerifyPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16">
-      <p className="section-marker">Step one</p>
-      <h1 className="display mt-2 text-5xl">Prove you study here</h1>
+      <h1 className="display text-4xl">Prove you study here</h1>
       <p className="mt-4 text-ink-muted">
         Sign in once with your <strong>@std.cu.ac.bd</strong> Google account. We read
         your student ID to work out your department, hand your browser a set of

@@ -11,8 +11,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
-      <p className="section-marker">Privacy</p>
-      <h1 className="display mt-2 text-5xl">What we keep, and what we cannot know</h1>
+      <h1 className="display text-4xl">What we keep, and what we cannot know</h1>
       <p className="mt-5 text-lg text-ink-muted">
         A student who rates a teacher honestly should never face consequences for it.
         The site is built so that a leak, a subpoena or a dishonest administrator
@@ -32,7 +31,7 @@ export default function PrivacyPage() {
           "Analytics that track individuals",
         ].map((item) => (
           <li key={item} className="flex items-start gap-3">
-            <span className="text-clay">✕</span>
+            <span className="text-low">✕</span>
             <span className="line-through">{item}</span>
           </li>
         ))}
@@ -58,8 +57,8 @@ export default function PrivacyPage() {
             body: "A rating arrives carrying only its token. It proves you were entitled to rate that teacher, and nothing else. We cannot connect it to the sign-in that produced it — the mathematics does not allow it, and neither does our database.",
           },
         ].map((step, i) => (
-          <li key={step.title} className="card p-5">
-            <p className="numerals section-marker">0{i + 1}</p>
+          <li key={step.title} className="panel p-5">
+            <span className="score text-sm text-ink-muted">{i + 1}</span>
             <p className="display mt-1 text-xl">{step.title}</p>
             <p className="mt-2 text-sm text-ink-muted">{step.body}</p>
           </li>
@@ -103,7 +102,7 @@ export default function PrivacyPage() {
         Because we hold nothing about you, we cannot restore your ability to rate if
         you clear your browser data. Tokens are issued once per term — issuing them
         again would let one student rate twice. Save the backup file from{" "}
-        <Link href="/me" className="text-evergreen hover:underline">
+        <Link href="/me" className="text-brand hover:underline">
           My ratings
         </Link>{" "}
         if you might switch device.
@@ -111,7 +110,7 @@ export default function PrivacyPage() {
 
       <p className="mt-12 text-sm text-ink-muted">
         Questions, or want a rating removed? See{" "}
-        <Link href="/corrections" className="text-evergreen hover:underline">
+        <Link href="/corrections" className="text-brand hover:underline">
           corrections and removal
         </Link>
         .

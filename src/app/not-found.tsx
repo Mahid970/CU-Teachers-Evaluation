@@ -3,8 +3,7 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <div className="mx-auto flex max-w-xl flex-col items-start px-4 py-28">
-      <p className="section-marker">404</p>
-      <h1 className="display mt-3 text-5xl">This page is not here</h1>
+      <h1 className="display text-4xl">This page is not here</h1>
       <p className="mt-4 text-ink-muted">
         The teacher or department you were looking for may have been renamed, or the
         link may be wrong.
@@ -13,7 +12,7 @@ export default function NotFound() {
         <Link href="/teachers" className="btn btn-primary">
           Browse teachers
         </Link>
-        <Link href="/" className="btn btn-ghost">
+        <Link href="/" className="btn btn-quiet">
           Go home
         </Link>
       </div>

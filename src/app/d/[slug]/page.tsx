@@ -41,37 +41,37 @@ export default async function DepartmentPage({ params }: PageProps<"/d/[slug]">)
     <div className="mx-auto max-w-6xl px-4 py-14">
       <Link
         href="/faculties"
-        className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-evergreen"
+        className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-brand"
       >
         <ArrowLeft size={15} strokeWidth={1.5} />
         All departments
       </Link>
 
-      <header className="mt-6 border-b border-rule pb-8">
-        <p className="section-marker">{faculty.name}</p>
-        <h1 className="display mt-2 text-5xl">{dept.name}</h1>
+      <header className="mt-6 border-b border-hairline pb-8">
+        <h1 className="display text-4xl">{dept.name}</h1>
+        <p className="mt-2 text-ink-muted">{faculty.name}</p>
 
-        <dl className="mt-6 flex flex-wrap gap-x-10 gap-y-4 text-sm">
+        <dl className="mt-6 flex flex-wrap gap-x-12 gap-y-5 text-sm">
           <div>
-            <dt className="text-xs text-ink-muted">Teachers</dt>
-            <dd className="numerals display text-2xl">{teachers.length}</dd>
+            <dd className="score text-2xl">{teachers.length}</dd>
+            <dt className="mt-1 text-ink-muted">Teachers</dt>
           </div>
           <div>
-            <dt className="text-xs text-ink-muted">With published ratings</dt>
-            <dd className="numerals display text-2xl">{rated.length}</dd>
+            <dd className="score text-2xl">{rated.length}</dd>
+            <dt className="mt-1 text-ink-muted">With published ratings</dt>
           </div>
           {deptAverage !== null && (
             <div>
-              <dt className="text-xs text-ink-muted">Department average</dt>
               <dd className="mt-1">
                 <StarRow value={deptAverage} size={18} />
               </dd>
+              <dt className="mt-1 text-ink-muted">Department average</dt>
             </div>
           )}
           {dept.code && (
             <div>
-              <dt className="text-xs text-ink-muted">ID code</dt>
-              <dd className="numerals display text-2xl">{dept.code}</dd>
+              <dd className="score text-2xl">{dept.code}</dd>
+              <dt className="mt-1 text-ink-muted">Student ID code</dt>
             </div>
           )}
         </dl>

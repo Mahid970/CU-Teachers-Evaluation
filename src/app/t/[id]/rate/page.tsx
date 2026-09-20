@@ -19,10 +19,9 @@ export default async function RatePage({ params }: PageProps<"/t/[id]/rate">) {
       <div className="flex items-center gap-4">
         <TeacherAvatar teacher={teacher} size={72} />
         <div>
-          <p className="section-marker">Rating</p>
           <h1 className="display text-3xl leading-tight">{teacher.name}</h1>
           <p className="text-sm text-ink-muted">
-            {teacher.designation} · {teacher.dept_name}
+            {teacher.designation}, {teacher.dept_name}
           </p>
         </div>
       </div>

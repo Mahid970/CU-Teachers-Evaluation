@@ -9,8 +9,7 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
-      <p className="section-marker">Terms</p>
-      <h1 className="display mt-2 text-5xl">Terms of use</h1>
+      <h1 className="display text-4xl">Terms of use</h1>
 
       <h2 className="display mt-12 text-3xl">What this site is</h2>
       <p className="mt-4 text-ink-muted">
@@ -32,11 +31,11 @@ export default function TermsPage() {
       <p className="mt-4 text-ink-muted">
         Ratings are numeric, with a fixed set of tags; there is no free text. We remove
         ratings that breach the{" "}
-        <Link href="/guidelines" className="text-evergreen hover:underline">
+        <Link href="/guidelines" className="text-brand hover:underline">
           guidelines
         </Link>
         , and we correct or remove teacher details on request — see{" "}
-        <Link href="/corrections" className="text-evergreen hover:underline">
+        <Link href="/corrections" className="text-brand hover:underline">
           corrections and removal
         </Link>
         .
@@ -52,7 +51,7 @@ export default function TermsPage() {
       <h2 className="display mt-12 text-3xl">Your data</h2>
       <p className="mt-4 text-ink-muted">
         We hold no personal data about raters, by design. See the{" "}
-        <Link href="/privacy" className="text-evergreen hover:underline">
+        <Link href="/privacy" className="text-brand hover:underline">
           privacy page
         </Link>{" "}
         for exactly what is stored and what the limits of that protection are.

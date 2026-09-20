@@ -46,7 +46,7 @@ export function MyTokens() {
 
   if (!bundle) {
     return (
-      <div className="card mt-10 p-8">
+      <div className="panel mt-10 p-8">
         <p className="display text-2xl">No tokens in this browser</p>
         <p className="mt-2 text-sm text-ink-muted">
           Either you have not verified yet on this device, or your browser storage was
@@ -56,7 +56,7 @@ export function MyTokens() {
           <Link href="/verify" className="btn btn-primary">
             Verify with Google
           </Link>
-          <button type="button" className="btn btn-ghost" onClick={() => fileInput.current?.click()}>
+          <button type="button" className="btn btn-quiet" onClick={() => fileInput.current?.click()}>
             <Upload size={16} strokeWidth={1.5} />
             Restore backup
           </button>
@@ -76,7 +76,7 @@ export function MyTokens() {
             }
           }}
         />
-        {note && <p className="mt-4 text-sm text-clay">{note}</p>}
+        {note && <p className="mt-4 text-sm text-low">{note}</p>}
       </div>
     );
   }
@@ -87,33 +87,33 @@ export function MyTokens() {
 
   return (
     <div className="mt-10">
-      <div className="card p-6">
+      <div className="panel p-6">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <div>
             <p className="display text-2xl">{bundle.department.name}</p>
             <p className="mt-1 text-sm text-ink-muted">
-              Session {bundle.session} · {bundle.termLabel}
+              {bundle.termLabel}, session {bundle.session}
             </p>
           </div>
           <p className="numerals text-sm text-ink-muted">
             {done.length} of {bundle.tokens.length} rated
           </p>
         </div>
-        <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-paper-sunk">
+        <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-surface-sunk">
           <div
-            className="h-full rounded-full bg-evergreen transition-[width] duration-500"
+            className="h-full rounded-full bg-brand transition-[width] duration-500"
             style={{ width: `${(done.length / Math.max(bundle.tokens.length, 1)) * 100}%` }}
           />
         </div>
 
         <div className="mt-5 flex flex-wrap gap-3">
-          <button type="button" className="btn btn-ghost !py-2 text-sm" onClick={() => downloadBackup(bundle)}>
+          <button type="button" className="btn btn-quiet !py-2 text-sm" onClick={() => downloadBackup(bundle)}>
             <Download size={15} strokeWidth={1.5} />
             Save backup
           </button>
           <button
             type="button"
-            className="btn btn-ghost !py-2 text-sm"
+            className="btn btn-quiet !py-2 text-sm"
             onClick={() => {
               if (
                 confirm(
@@ -130,7 +130,7 @@ export function MyTokens() {
         </div>
       </div>
 
-      {note && <p className="mt-4 text-sm text-clay">{note}</p>}
+      {note && <p className="mt-4 text-sm text-low">{note}</p>}
 
       <h2 className="display mt-12 text-2xl">Still to rate ({todo.length})</h2>
       <ul className="mt-4 space-y-2">
@@ -140,16 +140,16 @@ export function MyTokens() {
             <li key={token.teacherId}>
               <Link
                 href={`/t/${token.teacherId}/rate`}
-                className="card card-hover flex items-center justify-between gap-4 p-4"
+                className="row-link flex items-center justify-between gap-4 p-4"
               >
                 <span>
                   <span className="block font-medium">{teacher?.name ?? token.teacherId}</span>
                   <span className="block text-xs text-ink-muted">
                     {teacher?.designation}
-                    {teacher?.deptName ? ` · ${teacher.deptName}` : ""}
+                    {teacher?.deptName ? `, ${teacher.deptName}` : ""}
                   </span>
                 </span>
-                <span className="text-sm font-semibold text-evergreen">Rate →</span>
+                <span className="text-sm font-semibold text-brand">Rate →</span>
               </Link>
             </li>
           );
@@ -166,10 +166,10 @@ export function MyTokens() {
                 <li key={token.teacherId}>
                   <Link
                     href={`/t/${token.teacherId}/rate`}
-                    className="card card-hover flex items-center justify-between gap-4 p-4"
+                    className="row-link flex items-center justify-between gap-4 p-4"
                   >
                     <span className="flex items-center gap-3">
-                      <Check size={16} strokeWidth={1.5} className="text-positive" />
+                      <Check size={16} strokeWidth={1.5} className="text-brand" />
                       <span>
                         <span className="block font-medium">{teacher?.name ?? token.teacherId}</span>
                         <span className="block text-xs text-ink-muted">{teacher?.designation}</span>

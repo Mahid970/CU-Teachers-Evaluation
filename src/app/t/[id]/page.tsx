@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, Info } from "lucide-react";
-import { CountUp, GrowBar, Reveal } from "@/components/motion";
+import { ArrowLeft } from "lucide-react";
 import { StarRow } from "@/components/stars";
 import { TeacherAvatar } from "@/components/teacher-card";
 import { DEPARTMENT_BY_SLUG, FACULTY_BY_KEY } from "@/lib/departments";
@@ -38,89 +37,163 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
 
   const maxBar = stats ? Math.max(...stats.distribution, 1) : 1;
   const topTags = stats
-    ? Object.entries(stats.tagCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 6)
+    ? Object.entries(stats.tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 6)
     : [];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14">
+    <div className="mx-auto max-w-6xl px-4 py-12">
       <Link
         href={`/d/${teacher.dept_slug}`}
-        className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-evergreen"
+        className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-brand"
       >
-        <ArrowLeft size={15} strokeWidth={1.5} />
+        <ArrowLeft size={15} />
         {teacher.dept_name}
       </Link>
 
-      <div className="mt-6 grid gap-12 lg:grid-cols-12">
-        {/* ---- Identity ------------------------------------------------ */}
-        <div className="lg:col-span-5">
-          <div className="flex items-start gap-5">
-            <TeacherAvatar teacher={teacher} size={108} />
-            <div className="min-w-0">
-              <h1 className="display text-4xl leading-tight">{teacher.name}</h1>
-              <p className="mt-1 text-ink-muted">{teacher.designation}</p>
-              <p className="mt-1 text-sm text-ink-muted">
-                <Link href={`/d/${teacher.dept_slug}`} className="hover:text-evergreen">
-                  {teacher.dept_name}
-                </Link>
-                {faculty && <> · {faculty.shortName}</>}
-              </p>
+      <header className="mt-6 flex flex-wrap items-start gap-5">
+        <TeacherAvatar teacher={teacher} size={96} />
+        <div className="min-w-0 flex-1">
+          <h1 className="display text-[clamp(1.9rem,4.5vw,2.8rem)]">{teacher.name}</h1>
+          <p className="mt-1 text-ink-muted">{teacher.designation}</p>
+          <p className="mt-1 text-sm text-ink-muted">
+            <Link href={`/d/${teacher.dept_slug}`} className="hover:text-brand">
+              {teacher.dept_name}
+            </Link>
+            {faculty && <span className="text-ink-muted">, {faculty.name}</span>}
+          </p>
+        </div>
+
+        {stats && (
+          <div className="text-right">
+            <p className="score text-[clamp(3rem,10vw,4.5rem)]">
+              {stats.bayesian_score.toFixed(1)}
+            </p>
+            <div className="mt-1 flex justify-end">
+              <StarRow value={stats.bayesian_score} showValue={false} size={16} />
             </div>
+            <p className="numerals mt-1 text-sm text-ink-muted">
+              from {stats.n} rating{stats.n === 1 ? "" : "s"}
+            </p>
           </div>
+        )}
+      </header>
 
+      <div className="mt-10 grid gap-10 lg:grid-cols-12">
+        <div className="lg:col-span-7">
           {stats ? (
-            <div className="card mt-8 p-6">
-              <p className="section-marker">Overall</p>
-              <div className="mt-2 flex items-end gap-4">
-                <p className="display text-6xl leading-none">
-                  <CountUp value={stats.avg_overall} decimals={1} />
-                </p>
-                <div className="pb-1.5">
-                  <StarRow value={stats.avg_overall} showValue={false} size={18} />
-                  <p className="numerals mt-1 text-xs text-ink-muted">
-                    {stats.n} rating{stats.n === 1 ? "" : "s"} · updated daily
+            <>
+              <h2 className="display text-2xl">How students rate this teacher</h2>
+              <ul className="mt-6 space-y-5">
+                {CRITERIA.map((criterion) => {
+                  const value = stats[`avg_${criterion.key}` as keyof typeof stats] as number;
+                  return (
+                    <li key={criterion.key}>
+                      <div className="flex items-baseline justify-between gap-4">
+                        <p className="font-medium">{criterion.label}</p>
+                        <p className="score text-lg">{value.toFixed(1)}</p>
+                      </div>
+                      <p className="mb-2 text-sm text-ink-muted">{criterion.hint}</p>
+                      {/* The lowest possible score is 1, so the bar runs 1 to 5.
+                          Measuring from 0 would leave every teacher looking full. */}
+                      <div className="bar-track h-2 w-full">
+                        <div
+                          className="h-full rounded-full bg-brand"
+                          style={{ width: `${((value - 1) / 4) * 100}%` }}
+                        />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <h2 className="display mt-12 text-2xl">Spread of scores</h2>
+              <p className="prose-measure mt-2 text-sm text-ink-muted">
+                Students gave an average of {stats.avg_overall.toFixed(1)}. The
+                score above pulls small numbers of ratings towards the middle, so
+                a teacher rated three times cannot leap over one rated eighty
+                times.
+              </p>
+              <ul className="mt-5 space-y-2">
+                {[5, 4, 3, 2, 1].map((star) => {
+                  const count = stats.distribution[star - 1] ?? 0;
+                  return (
+                    <li key={star} className="flex items-center gap-3">
+                      <span className="numerals w-6 text-sm text-ink-muted">{star}</span>
+                      <div className="bar-track h-5 flex-1">
+                        <div
+                          className="h-full bg-score"
+                          style={{ width: `${(count / maxBar) * 100}%` }}
+                        />
+                      </div>
+                      <span className="numerals w-10 text-right text-sm text-ink-muted">
+                        {count}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {topTags.length > 0 && (
+                <>
+                  <h2 className="display mt-12 text-2xl">What students said</h2>
+                  <ul className="mt-4 flex flex-wrap gap-2">
+                    {topTags.map(([key, count]) => (
+                      <li key={key} className="tag">
+                        {TAGS.find((t) => t.key === key)?.label ?? key}
+                        <span className="numerals text-ink-muted">{count}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="prose-measure mt-4 text-sm text-ink-muted">
+                    Students choose from a fixed list. Written comments are not
+                    collected, because writing style can identify the student who
+                    wrote them.
                   </p>
-                </div>
-              </div>
-
-              <hr className="rule my-5" />
-
-              <dl className="grid grid-cols-2 gap-5">
-                <div>
-                  <dt className="text-xs text-ink-muted">Would take again</dt>
-                  <dd className="display mt-1 text-2xl">
-                    <CountUp value={stats.take_again_pct} decimals={0} suffix="%" />
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-ink-muted">Difficulty</dt>
-                  <dd className="display mt-1 text-2xl">
-                    <CountUp value={stats.avg_difficulty} decimals={1} />
-                    <span className="text-base text-ink-muted"> / 5</span>
-                  </dd>
-                </div>
-              </dl>
-              <p className="mt-3 text-xs text-ink-muted">
-                Difficulty is shown on its own. A hard course is not a bad teacher.
-              </p>
-            </div>
+                </>
+              )}
+            </>
           ) : (
-            <div className="card mt-8 p-6">
-              <p className="display text-2xl">Not enough ratings yet</p>
-              <p className="mt-2 text-sm text-ink-muted">
-                Scores stay hidden until a teacher has at least {MIN_RATINGS_TO_SHOW}{" "}
-                ratings, so that no one can be identified from a small number of
-                responses.
+            <div className="panel p-8">
+              <h2 className="display text-2xl">Not enough ratings yet</h2>
+              <p className="prose-measure mt-3 text-ink-muted">
+                Scores stay hidden until {MIN_RATINGS_TO_SHOW} students have rated
+                a teacher, so nobody can be identified from a handful of responses.
+                Every score here comes from a verified student of this department.
               </p>
-              <Link href="/verify" className="btn btn-primary mt-5 w-full">
+              <Link href="/verify" className="btn btn-primary mt-6">
                 Be one of the first to rate
               </Link>
             </div>
           )}
+        </div>
 
-          <Link href="/verify" className="btn btn-ghost mt-3 w-full">
+        <div className="lg:col-span-5">
+          {stats && (
+            <div className="panel p-6">
+              <dl className="grid grid-cols-2 gap-6">
+                <div>
+                  <dd className="score text-3xl">{Math.round(stats.take_again_pct)}%</dd>
+                  <dt className="mt-1 text-sm text-ink-muted">Would take again</dt>
+                </div>
+                <div>
+                  <dd className="score text-3xl">
+                    {stats.avg_difficulty.toFixed(1)}
+                    <span className="text-lg text-ink-muted">/5</span>
+                  </dd>
+                  <dt className="mt-1 text-sm text-ink-muted">Difficulty</dt>
+                </div>
+              </dl>
+              <p className="mt-4 text-sm text-ink-muted">
+                Difficulty stands on its own. A hard course is not a bad teacher.
+              </p>
+              <hr className="hairline my-5" />
+              <p className="text-sm text-ink-muted">
+                Scores refresh once a day, so no one can tell when a rating arrived.
+              </p>
+            </div>
+          )}
+
+          <Link href="/verify" className="btn btn-primary mt-4 w-full">
             {stats ? "Rate this teacher" : "Sign in to rate"}
           </Link>
 
@@ -129,112 +202,29 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
               href={teacher.profile_url}
               target="_blank"
               rel="noopener noreferrer nofollow"
-              className="mt-4 inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-evergreen"
+              className="mt-4 inline-block text-sm text-ink-muted underline underline-offset-4 hover:text-brand"
             >
-              Official cu.ac.bd profile
-              <ArrowRight size={13} strokeWidth={1.5} />
+              Official profile on cu.ac.bd
             </a>
-          )}
-        </div>
-
-        {/* ---- Breakdown ----------------------------------------------- */}
-        <div className="lg:col-span-7">
-          {stats ? (
-            <>
-              <Reveal>
-                <h2 className="display text-2xl">How students rate this teacher</h2>
-              </Reveal>
-
-              <ul className="mt-6 space-y-5">
-                {CRITERIA.map((criterion, i) => {
-                  const value = stats[`avg_${criterion.key}` as keyof typeof stats] as number;
-                  return (
-                    <li key={criterion.key}>
-                      <div className="flex items-baseline justify-between gap-4">
-                        <p className="font-medium">{criterion.label}</p>
-                        <p className="numerals text-sm font-semibold">
-                          {value.toFixed(1)}
-                        </p>
-                      </div>
-                      <p className="mb-2 text-xs text-ink-muted">{criterion.hint}</p>
-                      <GrowBar value={value} delay={i * 0.07} />
-                    </li>
-                  );
-                })}
-              </ul>
-
-              <Reveal className="mt-12">
-                <h2 className="display text-2xl">Spread of overall scores</h2>
-                <ul className="mt-5 space-y-2">
-                  {[5, 4, 3, 2, 1].map((star) => {
-                    const count = stats.distribution[star - 1] ?? 0;
-                    return (
-                      <li key={star} className="flex items-center gap-3">
-                        <span className="numerals w-8 text-sm text-ink-muted">
-                          {star}★
-                        </span>
-                        <div className="h-5 flex-1 bg-paper-sunk">
-                          <div
-                            className="h-full bg-evergreen/80"
-                            style={{ width: `${(count / maxBar) * 100}%` }}
-                          />
-                        </div>
-                        <span className="numerals w-10 text-right text-sm text-ink-muted">
-                          {count}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </Reveal>
-
-              {topTags.length > 0 && (
-                <Reveal className="mt-12">
-                  <h2 className="display text-2xl">What students said</h2>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {topTags.map(([key, count]) => (
-                      <span key={key} className="chip">
-                        {TAGS.find((t) => t.key === key)?.label ?? key}
-                        <span className="numerals text-ink-muted">{count}</span>
-                      </span>
-                    ))}
-                  </div>
-                  <p className="mt-4 flex items-start gap-2 text-xs text-ink-muted">
-                    <Info size={14} strokeWidth={1.5} className="mt-0.5 shrink-0" />
-                    Students choose from a fixed list of tags. Written comments are not
-                    collected, because writing style can identify a student.
-                  </p>
-                </Reveal>
-              )}
-            </>
-          ) : (
-            <div className="card flex h-full flex-col items-start justify-center p-10">
-              <p className="section-marker">Nothing to show yet</p>
-              <p className="display mt-3 text-3xl">
-                This page fills up once five students have rated.
-              </p>
-              <p className="mt-3 max-w-md text-sm text-ink-muted">
-                Every score here comes from a verified CU student of this department.
-                Until the threshold is reached, individual ratings are never shown or
-                hinted at.
-              </p>
-            </div>
           )}
 
           {colleagues.length > 0 && (
-            <div className="mt-14">
-              <h2 className="display text-2xl">Also in {teacher.dept_name}</h2>
-              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="mt-10">
+              <h2 className="display text-xl">Also in {teacher.dept_name}</h2>
+              <ul className="mt-4 space-y-2">
                 {colleagues.map((c) => (
                   <li key={c.id}>
-                    <Link href={`/t/${c.id}`} className="card card-hover flex items-center gap-3 p-3">
-                      <TeacherAvatar teacher={c} size={44} />
-                      <span className="min-w-0">
+                    <Link href={`/t/${c.id}`} className="row-link flex items-center gap-3 p-3">
+                      <TeacherAvatar teacher={c} size={40} />
+                      <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium">{c.name}</span>
                         <span className="block truncate text-xs text-ink-muted">
-                          {c.stats ? `${c.stats.avg_overall.toFixed(1)} ★` : "Not rated yet"}
+                          {c.designation}
                         </span>
                       </span>
+                      {c.stats && (
+                        <span className="score text-lg">{c.stats.avg_overall.toFixed(1)}</span>
+                      )}
                     </Link>
                   </li>
                 ))}

@@ -9,8 +9,7 @@ export const metadata: Metadata = {
 export default function CorrectionsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
-      <p className="section-marker">For teachers</p>
-      <h1 className="display mt-2 text-5xl">Corrections and removal</h1>
+      <h1 className="display text-4xl">Corrections and removal</h1>
       <p className="mt-5 text-lg text-ink-muted">
         Names, designations, departments and photographs come from the public pages of
         cu.ac.bd. If something about you is wrong or out of date, we will fix it.

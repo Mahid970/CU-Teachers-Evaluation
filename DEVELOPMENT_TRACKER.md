@@ -249,3 +249,30 @@ university account. Also raised the request limits: a whole campus shares a few
 internet addresses, and the batching change means each sign-in makes about eight
 requests, so the old limit would have blocked classmates after a handful of
 students had signed in.
+
+## 25. A design of its own
+
+Redesigned the site. The old look leaned on things that show up on a lot of
+AI-made websites: a cream background with a fancy serif, small capital labels
+above every heading, numbered 01/02/03 markers, arrows inside link text, and a
+paper-grain texture. It looked designed, but it did not look like *this*
+project.
+
+The new idea comes from what the site actually is — a scoreboard. Ranks, scores
+and spreads are the content, so the numbers are now the loudest thing on the
+page, set in a wide, confident typeface.
+
+The homepage now opens with a student ID being taken apart: 24 | 3 | 04 | 043,
+labelled session, faculty, department and you. It explains in three seconds how
+the site knows your department, and that the number is all it ever reads. It is
+also the only animation on the site; everything else moves only when you do
+something.
+
+Three things I fixed while looking closely:
+
+- **The leaderboard looked broken.** It ranked by the weighted score but showed
+  the plain average, so a 4.8 could sit below a 4.6. The number shown is now the
+  number it is ranked by, with enough decimal places for the order to make sense.
+- **The rating bars were useless.** Every bar was almost full, because they ran
+  from zero when the lowest possible score is one.
+- **The light/dark button showed both icons at once.**

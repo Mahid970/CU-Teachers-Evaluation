@@ -16,7 +16,6 @@ import {
   rememberEmailHint,
 } from "@/lib/tokens-client";
 import { useStoredValue } from "@/lib/use-local-storage";
-import { EASE } from "./motion";
 
 type IssueData = {
   term: { id: string; label: string };
@@ -131,14 +130,13 @@ export function VerifyFlow({
       {clientId && <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />}
 
       {existing && stage === "idle" && (
-        <div className="card mb-6 p-5">
+        <div className="panel mb-6 p-5">
           <p className="flex items-center gap-2 font-medium">
-            <Check size={18} strokeWidth={1.5} className="text-positive" />
+            <Check size={18} strokeWidth={1.5} className="text-brand" />
             This device already holds tokens for {existing.termLabel}
           </p>
           <p className="mt-2 text-sm text-ink-muted">
-            {existing.department.name} · {existing.tokens.length} teachers ·{" "}
-            {existing.rated.length} rated so far
+            {existing.department.name}, {existing.tokens.length} teachers, {existing.rated.length} rated so far
           </p>
           <Link href="/me" className="btn btn-primary mt-4">
             Continue rating
@@ -147,7 +145,7 @@ export function VerifyFlow({
       )}
 
       {stage === "idle" && (
-        <div className="card p-6">
+        <div className="panel p-6">
           {clientId ? (
             <>
               <div id="google-button" className="min-h-[44px]" />
@@ -165,8 +163,8 @@ export function VerifyFlow({
           )}
 
           {devLogin && (
-            <div className="mt-6 border-t border-rule pt-5">
-              <p className="section-marker">Development sign-in</p>
+            <div className="mt-6 border-t border-hairline pt-5">
+              <h2 className="font-semibold">Development sign-in</h2>
               <p className="mt-2 text-xs text-ink-muted">
                 Local only. Enter any valid student ID to walk through the flow.
               </p>
@@ -175,12 +173,12 @@ export function VerifyFlow({
                   value={devId}
                   onChange={(e) => setDevId(e.target.value)}
                   inputMode="numeric"
-                  className="numerals w-40 border border-rule bg-paper px-3 py-2 text-sm"
+                  className="numerals w-40 border border-hairline bg-ground px-3 py-2 text-sm"
                   aria-label="Development student ID"
                 />
                 <button
                   type="button"
-                  className="btn btn-ghost !py-2"
+                  className="btn btn-quiet !py-2"
                   onClick={() => void verify(`dev:${devId}`)}
                 >
                   Continue
@@ -192,9 +190,9 @@ export function VerifyFlow({
       )}
 
       {stage === "working" && (
-        <div className="card p-6">
+        <div className="panel p-6">
           <div className="flex items-center gap-3">
-            <Loader2 size={20} strokeWidth={1.5} className="animate-spin text-evergreen" />
+            <Loader2 size={20} strokeWidth={1.5} className="animate-spin text-brand" />
             <p>
               Signing your tokens
               {progress.total > 0 && (
@@ -206,9 +204,9 @@ export function VerifyFlow({
             </p>
           </div>
           {progress.total > 0 && (
-            <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-paper-sunk">
+            <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-surface-sunk">
               <div
-                className="h-full rounded-full bg-evergreen transition-[width] duration-300"
+                className="h-full rounded-full bg-brand transition-[width] duration-300"
                 style={{ width: `${(progress.done / progress.total) * 100}%` }}
               />
             </div>
@@ -220,7 +218,7 @@ export function VerifyFlow({
       )}
 
       {stage === "choice" && (
-        <div className="card p-6">
+        <div className="panel p-6">
           <p className="display text-2xl">Which unit are you in?</p>
           <p className="mt-2 text-sm text-ink-muted">
             Your ID uses the old marine sciences code, which three units shared. Your
@@ -231,7 +229,7 @@ export function VerifyFlow({
               <button
                 key={choice.slug}
                 type="button"
-                className="btn btn-ghost"
+                className="btn btn-quiet"
                 onClick={() => void verify(idToken, choice.slug)}
               >
                 {choice.name}
@@ -242,13 +240,13 @@ export function VerifyFlow({
       )}
 
       {stage === "error" && (
-        <div className="card border-clay p-6">
-          <p className="flex items-center gap-2 font-medium text-clay">
+        <div className="panel border-low p-6">
+          <p className="flex items-center gap-2 font-medium text-low">
             <AlertCircle size={18} strokeWidth={1.5} />
             We could not issue your tokens
           </p>
           <p className="mt-2 text-sm text-ink-muted">{message}</p>
-          <button type="button" className="btn btn-ghost mt-4" onClick={() => setStage("idle")}>
+          <button type="button" className="btn btn-quiet mt-4" onClick={() => setStage("idle")}>
             Try again
           </button>
         </div>
@@ -258,20 +256,20 @@ export function VerifyFlow({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: EASE }}
-          className="card relative p-7"
+          transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] as const }}
+          className="panel relative p-7"
         >
-          <span className="stamp absolute -top-3 right-6 rotate-[4deg] bg-paper-raised">
+          <span className="absolute -top-3 right-6 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-surface">
             Verified
           </span>
-          <p className="section-marker">You are in</p>
-          <p className="display mt-2 text-3xl">{bundle.department.name}</p>
+          
+          <p className="display text-3xl">{bundle.department.name}</p>
           <p className="mt-1 text-sm text-ink-muted">
-            Session {bundle.session} · {bundle.termLabel} · {bundle.tokens.length}{" "}
-            teachers you can rate
+            {bundle.termLabel}, session {bundle.session}. You can rate{" "}
+            {bundle.tokens.length} teachers.
           </p>
 
-          <hr className="rule my-6" />
+          <hr className="hairline my-6" />
 
           <p className="text-sm">
             Your tokens are now in this browser. They are the only proof that you may
@@ -285,7 +283,7 @@ export function VerifyFlow({
             </Link>
             <button
               type="button"
-              className="btn btn-ghost"
+              className="btn btn-quiet"
               onClick={() => {
                 downloadBackup(bundle);
                 rememberEmailHint(emailHint());

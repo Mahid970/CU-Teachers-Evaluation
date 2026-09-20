@@ -2,43 +2,42 @@ import Link from "next/link";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-rule bg-paper-sunk">
+    <footer className="mt-20 border-t border-hairline">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-2">
-          <p className="display text-2xl">CU Rate</p>
-          <p className="mt-3 max-w-sm text-sm text-ink-muted">
-            Anonymous teacher ratings by verified University of Chittagong students.
-            We never store your email, your ID or your IP address — see exactly what
-            we keep on the privacy page.
+          <p className="display text-xl">CU Rate</p>
+          <p className="prose-measure mt-3 text-sm text-ink-muted">
+            Anonymous teacher ratings by verified University of Chittagong
+            students. Your email, your ID and your IP address are never stored.
           </p>
         </div>
 
         <nav className="text-sm">
-          <p className="section-marker mb-3">Browse</p>
-          <ul className="space-y-2">
-            <li><Link href="/teachers" className="hover:text-evergreen">All teachers</Link></li>
-            <li><Link href="/faculties" className="hover:text-evergreen">Faculties &amp; departments</Link></li>
-            <li><Link href="/verify" className="hover:text-evergreen">Rate a teacher</Link></li>
-            <li><Link href="/me" className="hover:text-evergreen">My ratings</Link></li>
+          <h2 className="font-semibold">Browse</h2>
+          <ul className="mt-3 space-y-2 text-ink-muted">
+            <li><Link href="/teachers" className="hover:text-brand">All teachers</Link></li>
+            <li><Link href="/faculties" className="hover:text-brand">Faculties and departments</Link></li>
+            <li><Link href="/verify" className="hover:text-brand">Rate your teachers</Link></li>
+            <li><Link href="/me" className="hover:text-brand">My ratings</Link></li>
           </ul>
         </nav>
 
         <nav className="text-sm">
-          <p className="section-marker mb-3">About</p>
-          <ul className="space-y-2">
-            <li><Link href="/privacy" className="hover:text-evergreen">Privacy</Link></li>
-            <li><Link href="/guidelines" className="hover:text-evergreen">Rating guidelines</Link></li>
-            <li><Link href="/corrections" className="hover:text-evergreen">Corrections &amp; removal</Link></li>
-            <li><Link href="/terms" className="hover:text-evergreen">Terms</Link></li>
+          <h2 className="font-semibold">About</h2>
+          <ul className="mt-3 space-y-2 text-ink-muted">
+            <li><Link href="/privacy" className="hover:text-brand">Privacy</Link></li>
+            <li><Link href="/guidelines" className="hover:text-brand">Rating guidelines</Link></li>
+            <li><Link href="/corrections" className="hover:text-brand">Corrections and removal</Link></li>
+            <li><Link href="/terms" className="hover:text-brand">Terms</Link></li>
           </ul>
         </nav>
       </div>
 
-      <div className="border-t border-rule">
-        <p className="mx-auto max-w-6xl px-4 py-5 text-xs text-ink-muted">
-          An independent student project. Not an official website of the University of
-          Chittagong, and not affiliated with or endorsed by the university.
-          Teacher names and photographs are taken from the public pages of cu.ac.bd.
+      <div className="border-t border-hairline">
+        <p className="prose-measure mx-auto max-w-6xl px-4 py-5 text-xs text-ink-muted">
+          A student project, not an official website of the University of
+          Chittagong. Teacher names and photographs come from the public pages of
+          cu.ac.bd.
         </p>
       </div>
     </footer>

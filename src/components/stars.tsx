@@ -24,7 +24,7 @@ export function StarRow({
           const fill = Math.max(0, Math.min(1, rounded - i + 1));
           return (
             <span key={i} className="relative" style={{ width: size, height: size }}>
-              <Star size={size} strokeWidth={1.5} className="absolute inset-0 text-rule" />
+              <Star size={size} strokeWidth={1.5} className="absolute inset-0 text-hairline" />
               <span
                 className="absolute inset-0 overflow-hidden"
                 style={{ width: `${fill * 100}%` }}
@@ -32,8 +32,8 @@ export function StarRow({
                 <Star
                   size={size}
                   strokeWidth={1.5}
-                  className="text-amber"
-                  fill="var(--amber)"
+                  className="text-score"
+                  fill="var(--score)"
                 />
               </span>
             </span>
@@ -120,8 +120,8 @@ export function StarInput({
           <Star
             size={size}
             strokeWidth={1.5}
-            className={i <= shown ? "text-amber" : "text-rule"}
-            fill={i <= shown ? "var(--amber)" : "none"}
+            className={i <= shown ? "text-score" : "text-hairline"}
+            fill={i <= shown ? "var(--score)" : "none"}
           />
         </motion.button>
       ))}

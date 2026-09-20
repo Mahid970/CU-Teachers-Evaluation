@@ -16,8 +16,7 @@ export default async function TeachersPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-14">
-      <p className="section-marker">Directory</p>
-      <h1 className="display mt-2 text-5xl">All teachers</h1>
+      <h1 className="display text-4xl">All teachers</h1>
       <p className="mt-3 max-w-2xl text-sm text-ink-muted">
         Every teacher listed on the public pages of cu.ac.bd, {teachers.length} in
         all. Ratings appear once a teacher has at least {MIN_RATINGS_TO_SHOW} of

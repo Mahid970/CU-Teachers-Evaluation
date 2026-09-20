@@ -9,8 +9,7 @@ export const metadata: Metadata = {
 export default function GuidelinesPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
-      <p className="section-marker">Guidelines</p>
-      <h1 className="display mt-2 text-5xl">Rating fairly</h1>
+      <h1 className="display text-4xl">Rating fairly</h1>
 
       <h2 className="display mt-12 text-3xl">Before you rate</h2>
       <ul className="mt-4 space-y-3 text-ink-muted">
