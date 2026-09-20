@@ -10,13 +10,13 @@ export function SiteHeader() {
         </Link>
 
         <nav className="ml-auto flex items-center gap-1 text-sm">
-          <Link href="/teachers" className="hidden px-3 py-2 hover:text-brand sm:block">
+          <Link href="/teachers" className="nav-link hidden px-3 py-2 hover:text-brand sm:block">
             Teachers
           </Link>
-          <Link href="/faculties" className="hidden px-3 py-2 hover:text-brand sm:block">
+          <Link href="/faculties" className="nav-link hidden px-3 py-2 hover:text-brand sm:block">
             Departments
           </Link>
-          <Link href="/privacy" className="hidden px-3 py-2 hover:text-brand sm:block">
+          <Link href="/privacy" className="nav-link hidden px-3 py-2 hover:text-brand sm:block">
             Privacy
           </Link>
           <ThemeToggle />

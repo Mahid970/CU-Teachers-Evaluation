@@ -15,20 +15,20 @@ export function SiteFooter() {
         <nav className="text-sm">
           <h2 className="font-semibold">Browse</h2>
           <ul className="mt-3 space-y-2 text-ink-muted">
-            <li><Link href="/teachers" className="hover:text-brand">All teachers</Link></li>
-            <li><Link href="/faculties" className="hover:text-brand">Faculties and departments</Link></li>
-            <li><Link href="/verify" className="hover:text-brand">Rate your teachers</Link></li>
-            <li><Link href="/me" className="hover:text-brand">My ratings</Link></li>
+            <li><Link href="/teachers" className="link-grow hover:text-brand">All teachers</Link></li>
+            <li><Link href="/faculties" className="link-grow hover:text-brand">Faculties and departments</Link></li>
+            <li><Link href="/verify" className="link-grow hover:text-brand">Rate your teachers</Link></li>
+            <li><Link href="/me" className="link-grow hover:text-brand">My ratings</Link></li>
           </ul>
         </nav>
 
         <nav className="text-sm">
           <h2 className="font-semibold">About</h2>
           <ul className="mt-3 space-y-2 text-ink-muted">
-            <li><Link href="/privacy" className="hover:text-brand">Privacy</Link></li>
-            <li><Link href="/guidelines" className="hover:text-brand">Rating guidelines</Link></li>
-            <li><Link href="/corrections" className="hover:text-brand">Corrections and removal</Link></li>
-            <li><Link href="/terms" className="hover:text-brand">Terms</Link></li>
+            <li><Link href="/privacy" className="link-grow hover:text-brand">Privacy</Link></li>
+            <li><Link href="/guidelines" className="link-grow hover:text-brand">Rating guidelines</Link></li>
+            <li><Link href="/corrections" className="link-grow hover:text-brand">Corrections and removal</Link></li>
+            <li><Link href="/terms" className="link-grow hover:text-brand">Terms</Link></li>
           </ul>
         </nav>
       </div>

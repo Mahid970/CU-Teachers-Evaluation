@@ -51,7 +51,7 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
       </Link>
 
       <header className="mt-6 flex flex-wrap items-start gap-5">
-        <TeacherAvatar teacher={teacher} size={96} />
+        <TeacherAvatar teacher={teacher} size={96} morphId={teacher.id} />
         <div className="min-w-0 flex-1">
           <h1 className="display text-[clamp(1.9rem,4.5vw,2.8rem)]">{teacher.name}</h1>
           <p className="mt-1 text-ink-muted">{teacher.designation}</p>
@@ -82,12 +82,12 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
         <div className="lg:col-span-7">
           {stats ? (
             <>
-              <h2 className="display text-2xl">How students rate this teacher</h2>
+              <h2 className="reveal display text-2xl">How students rate this teacher</h2>
               <ul className="mt-6 space-y-5">
                 {CRITERIA.map((criterion) => {
                   const value = stats[`avg_${criterion.key}` as keyof typeof stats] as number;
                   return (
-                    <li key={criterion.key}>
+                    <li key={criterion.key} className="reveal">
                       <div className="flex items-baseline justify-between gap-4">
                         <p className="font-medium">{criterion.label}</p>
                         <p className="score text-lg">{value.toFixed(1)}</p>
@@ -106,7 +106,7 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
                 })}
               </ul>
 
-              <h2 className="display mt-12 text-2xl">Spread of scores</h2>
+              <h2 className="reveal display mt-12 text-2xl">Spread of scores</h2>
               <p className="prose-measure mt-2 text-sm text-ink-muted">
                 Students gave an average of {stats.avg_overall.toFixed(1)}. The
                 score above pulls small numbers of ratings towards the middle, so
@@ -135,7 +135,7 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
 
               {topTags.length > 0 && (
                 <>
-                  <h2 className="display mt-12 text-2xl">What students said</h2>
+                  <h2 className="reveal display mt-12 text-2xl">What students said</h2>
                   <ul className="mt-4 flex flex-wrap gap-2">
                     {topTags.map(([key, count]) => (
                       <li key={key} className="tag">
@@ -169,7 +169,7 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
 
         <div className="lg:col-span-5">
           {stats && (
-            <div className="panel p-6">
+            <div className="reveal panel p-6">
               <dl className="grid grid-cols-2 gap-6">
                 <div>
                   <dd className="score text-3xl">{Math.round(stats.take_again_pct)}%</dd>
@@ -202,7 +202,7 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
               href={teacher.profile_url}
               target="_blank"
               rel="noopener noreferrer nofollow"
-              className="mt-4 inline-block text-sm text-ink-muted underline underline-offset-4 hover:text-brand"
+              className="link-grow mt-4 inline-block text-sm text-ink-muted hover:text-brand"
             >
               Official profile on cu.ac.bd
             </a>

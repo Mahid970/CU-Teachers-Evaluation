@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { TeacherBrowser } from "@/components/teacher-browser";
 import { IdDecoder } from "@/components/id-decoder";
+import { CountUp } from "@/components/count-up";
 import { FACULTIES } from "@/lib/departments";
 import { getDepartmentSummaries, getRankedTeachers, getSiteCounts } from "@/lib/db";
 import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
@@ -52,17 +53,17 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <dl className="mt-14 flex flex-wrap gap-x-14 gap-y-6 border-t border-hairline pt-6">
+        <dl className="reveal mt-14 flex flex-wrap gap-x-14 gap-y-6 border-t border-hairline pt-6">
           <div>
-            <dd className="score text-3xl">{counts.teachers.toLocaleString("en-US")}</dd>
+            <dd className="score text-3xl"><CountUp value={counts.teachers} /></dd>
             <dt className="mt-1 text-sm text-ink-muted">Teachers listed</dt>
           </div>
           <div>
-            <dd className="score text-3xl">{counts.departments}</dd>
+            <dd className="score text-3xl"><CountUp value={counts.departments} /></dd>
             <dt className="mt-1 text-sm text-ink-muted">Departments</dt>
           </div>
           <div>
-            <dd className="score text-3xl">{counts.ratings.toLocaleString("en-US")}</dd>
+            <dd className="score text-3xl"><CountUp value={counts.ratings} /></dd>
             <dt className="mt-1 text-sm text-ink-muted">Ratings so far</dt>
           </div>
         </dl>
@@ -71,7 +72,7 @@ export default async function HomePage() {
       {/* ---- Leaderboard ------------------------------------------------ */}
       <section className="border-t border-hairline bg-surface-sunk/40">
         <div className="mx-auto max-w-6xl px-4 py-16">
-          <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="reveal flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="display text-3xl">Highest rated right now</h2>
               <p className="prose-measure mt-3 text-ink-muted">
@@ -83,7 +84,7 @@ export default async function HomePage() {
             </div>
             <Link
               href="/teachers"
-              className="text-sm font-semibold text-brand underline underline-offset-4"
+              className="link-grow text-sm font-semibold text-brand"
             >
               See all teachers
             </Link>
@@ -101,7 +102,7 @@ export default async function HomePage() {
 
       {/* ---- How it works: a real sequence, so it is numbered ---------- */}
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="display text-3xl">Three steps, then nothing left behind</h2>
+        <h2 className="reveal display text-3xl">Three steps, then nothing left behind</h2>
 
         <ol className="mt-8 grid gap-8 md:grid-cols-3">
           {[
@@ -118,7 +119,7 @@ export default async function HomePage() {
               body: "Your browser holds signed tokens that prove you may rate, without saying who you are.",
             },
           ].map((step, i) => (
-            <li key={step.title} className="border-t-2 border-ink pt-4">
+            <li key={step.title} className="reveal border-t-2 border-ink pt-4">
               <span className="score text-lg text-ink-muted">{i + 1}</span>
               <h3 className="display mt-2 text-xl">{step.title}</h3>
               <p className="mt-2 text-ink-muted">{step.body}</p>
@@ -131,7 +132,7 @@ export default async function HomePage() {
       <section className="border-y border-hairline bg-surface-sunk/40">
         <div className="mx-auto max-w-6xl px-4 py-16">
           <div className="grid gap-10 lg:grid-cols-12">
-            <div className="lg:col-span-5">
+            <div className="reveal lg:col-span-5">
               <h2 className="display text-3xl">What we never store</h2>
               <p className="prose-measure mt-3 text-ink-muted">
                 A student who rates honestly should never face consequences for
@@ -140,13 +141,13 @@ export default async function HomePage() {
               </p>
               <Link
                 href="/privacy"
-                className="mt-5 inline-block text-sm font-semibold text-brand underline underline-offset-4"
+                className="link-grow mt-5 inline-block text-sm font-semibold text-brand"
               >
                 How that works
               </Link>
             </div>
 
-            <div className="lg:col-span-7">
+            <div className="reveal lg:col-span-7">
               <ul className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
                 {[
                   "Your email address",
@@ -178,13 +179,13 @@ export default async function HomePage() {
 
       {/* ---- Faculties --------------------------------------------------- */}
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="display text-3xl">Browse by faculty</h2>
+        <h2 className="reveal display text-3xl">Browse by faculty</h2>
 
         <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {FACULTIES.map((f) => {
             const entry = byFaculty.get(f.key) ?? { depts: 0, teachers: 0 };
             return (
-              <li key={f.key}>
+              <li key={f.key} className="reveal">
                 <Link href={`/faculties#${f.key}`} className="row-link block p-5">
                   <div className="flex items-baseline justify-between gap-4">
                     <h3 className="display text-lg leading-snug">{f.shortName}</h3>

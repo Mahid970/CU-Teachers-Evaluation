@@ -33,7 +33,7 @@ export default async function FacultiesPage() {
           const teachers = depts.reduce((sum, d) => sum + d.teachers, 0);
 
           return (
-            <section key={faculty.key} id={faculty.key} className="scroll-mt-24">
+            <section key={faculty.key} id={faculty.key} className="reveal scroll-mt-24">
               <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-hairline pb-3">
                 <h2 className="display text-3xl">{faculty.name}</h2>
                 <p className="numerals text-sm text-ink-muted">

@@ -1,3 +1,4 @@
+import { ViewTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { TeacherWithStats } from "@/lib/db";
@@ -7,9 +8,12 @@ import { StarRow } from "./stars";
 export function TeacherAvatar({
   teacher,
   size = 56,
+  morphId,
 }: {
   teacher: Pick<TeacherWithStats, "name" | "photo_url">;
   size?: number;
+  /** Set on both the list row and the teacher page to morph between them. */
+  morphId?: string;
 }) {
   const initials = teacher.name
     .replace(/^(Dr|Prof|Professor|Mr|Ms|Mrs)\.?\s+/i, "")
@@ -19,9 +23,9 @@ export function TeacherAvatar({
     .join("")
     .toUpperCase();
 
-  return (
+  const frame = (
     <div
-      className="relative shrink-0 overflow-hidden rounded-lg bg-brand-wash"
+      className="avatar relative shrink-0 overflow-hidden rounded-lg bg-brand-wash"
       style={{ width: size, height: size }}
     >
       {teacher.photo_url ? (
@@ -43,6 +47,14 @@ export function TeacherAvatar({
         </span>
       )}
     </div>
+  );
+
+  if (!morphId) return frame;
+
+  return (
+    <ViewTransition name={`teacher-${morphId}`} share="morph" default="none">
+      {frame}
+    </ViewTransition>
   );
 }
 
@@ -68,7 +80,7 @@ export function TeacherRow({
         </span>
       )}
 
-      <TeacherAvatar teacher={teacher} />
+      <TeacherAvatar teacher={teacher} morphId={teacher.id} />
 
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold">{teacher.name}</p>

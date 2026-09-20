@@ -19,8 +19,9 @@ const SORTS: { key: SortKey; label: string }[] = [
 /**
  * The list behind the leaderboard, the directory and each department page.
  *
- * Re-ordering is instant and silent: rows change place because the reader asked
- * them to, so animating the shuffle would only slow the answer down.
+ * Sorting and filtering replay a short settle on the rows, so the list visibly
+ * answers the click. It is quick and front-loaded — the first few rows lead and
+ * the rest follow together, rather than a long cascade you have to wait out.
  */
 export function TeacherBrowser({
   teachers,
@@ -142,7 +143,9 @@ export function TeacherBrowser({
           </p>
         </div>
       ) : (
-        <ul className="mt-4 space-y-2">
+        /* Keyed on the current ordering, so changing sort or filter replays the
+           settle: the list visibly answers the click instead of blinking. */
+        <ul key={`${sort}-${faculty}`} className="list-settle mt-4 space-y-2">
           {visible.map((t, i) => (
             <li key={t.id}>
               <TeacherRow teacher={t} rank={ranked ? i + 1 : undefined} />

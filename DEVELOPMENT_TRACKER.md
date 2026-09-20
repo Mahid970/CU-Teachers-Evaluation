@@ -276,3 +276,30 @@ Three things I fixed while looking closely:
 - **The rating bars were useless.** Every bar was almost full, because they ran
   from zero when the lowest possible score is one.
 - **The light/dark button showed both icons at once.**
+
+## 26. Movement, in the places it helps
+
+Added animation across the site, kept deliberately light.
+
+- **Smooth scrolling**, so jumping to a faculty glides instead of snapping.
+- **Sections arrive as you scroll** — a short fade and rise, driven entirely by
+  CSS. There is no JavaScript behind it, so it costs nothing, and browsers that
+  do not support it simply show the content.
+- **Hover feedback** on teacher rows: the row lifts slightly, the photo leans
+  in, and the score brightens. Links grow an underline from the left, and
+  buttons press in when clicked.
+- **The leaderboard answers you.** Changing the sort replays a quick settle down
+  the list, so you can see it re-ordered rather than blink.
+- **Teacher photos travel.** Opening a teacher from a list carries their photo
+  across to their page, so it reads as the same person rather than two pictures
+  swapping.
+- **The counts on the homepage count up** the first time they come into view.
+
+Anyone whose device asks for less motion gets none of it — not the scrolling,
+not the reveals, not the page transitions.
+
+One bug worth recording: the scroll reveals first measured progress as a share
+of each block's height, which never completes for a block taller than the
+screen. Headings sat at about seventy percent opacity for as long as you looked
+at them. They now finish after a fixed amount of scrolling, whatever the size of
+the block.

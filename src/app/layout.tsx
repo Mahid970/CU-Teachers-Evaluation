@@ -36,6 +36,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      // Tells Next the smooth scrolling is deliberate, so route changes jump
+      // instead of gliding the whole page to the top.
+      data-scroll-behavior="smooth"
       className={`${archivo.variable} ${instrumentSans.variable} ${hindSiliguri.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-ground text-ink">

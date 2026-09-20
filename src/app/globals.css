@@ -94,6 +94,12 @@
 html {
   background: var(--ground);
   overflow-x: hidden;
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+}
+
+[id] {
+  scroll-margin-top: 5.5rem;
 }
 
 body {
@@ -163,13 +169,37 @@ body {
     border: 1px solid var(--hairline);
     border-radius: 10px;
     transition:
-      border-color 140ms var(--ease),
-      background-color 140ms var(--ease);
+      border-color 160ms var(--ease),
+      background-color 160ms var(--ease),
+      transform 160ms var(--ease);
   }
 
   .row-link:hover {
     border-color: var(--brand);
     background: var(--brand-wash);
+    transform: translateY(-2px);
+  }
+
+  .row-link:active {
+    transform: translateY(0);
+  }
+
+  /* The photo leans in a little when you point at the row. */
+  .row-link .avatar img {
+    transition: transform 320ms var(--ease);
+  }
+
+  .row-link:hover .avatar img {
+    transform: scale(1.05);
+  }
+
+  /* The score is the thing you came for, so it brightens on approach. */
+  .row-link .score {
+    transition: color 160ms var(--ease);
+  }
+
+  .row-link:hover .score {
+    color: var(--brand);
   }
 
   .hairline {
@@ -227,8 +257,75 @@ body {
     border-color: var(--ink);
   }
 
+  .btn:active {
+    transform: translateY(1px);
+  }
+
   .btn:disabled {
     opacity: 0.45;
+    transform: none;
+  }
+
+  /* Underline grows from the left rather than blinking on. */
+  .link-grow {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 1px;
+    transition: background-size 220ms var(--ease);
+    padding-bottom: 1px;
+  }
+
+  .link-grow:hover,
+  .link-grow:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  .nav-link {
+    position: relative;
+    transition: color 160ms var(--ease);
+  }
+
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.35rem;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 200ms var(--ease);
+  }
+
+  .nav-link:hover::after,
+  .nav-link:focus-visible::after {
+    transform: scaleX(1);
+  }
+
+  .theme-toggle svg {
+    transition:
+      transform 300ms var(--ease),
+      color 160ms var(--ease);
+  }
+
+  .theme-toggle:hover svg {
+    transform: rotate(-18deg);
+  }
+
+  .tag,
+  .segment {
+    transition:
+      border-color 160ms var(--ease),
+      background-color 160ms var(--ease),
+      color 160ms var(--ease),
+      transform 160ms var(--ease);
+  }
+
+  .tag:active,
+  .segment:active {
+    transform: scale(0.97);
   }
 
   .field {
@@ -378,9 +475,89 @@ body {
 
 }
 
+/* ---- Motion ----------------------------------------------------------- */
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes settle-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    /* The range is a fixed scroll distance, not a share of the element. A
+       percentage range never finishes for a block taller than the screen, which
+       leaves headings sitting at half opacity for as long as you look at them. */
+    .reveal {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 180px;
+    }
+  }
+
+  /* Answers a click: the list re-orders, so it says so. */
+  .list-settle > * {
+    animation: settle-in 260ms var(--ease) both;
+  }
+
+  .list-settle > *:nth-child(1) { animation-delay: 0ms; }
+  .list-settle > *:nth-child(2) { animation-delay: 25ms; }
+  .list-settle > *:nth-child(3) { animation-delay: 50ms; }
+  .list-settle > *:nth-child(4) { animation-delay: 75ms; }
+  .list-settle > *:nth-child(5) { animation-delay: 100ms; }
+  .list-settle > *:nth-child(n + 6) { animation-delay: 120ms; }
+}
+
+/* ---- Page transitions -------------------------------------------------- */
+
+/* A teacher's photo travels from the list to their page, so it reads as the
+   same person rather than two pictures swapping. */
+::view-transition-group(.morph) {
+  animation-duration: 320ms;
+  animation-timing-function: var(--ease);
+}
+
+::view-transition-image-pair(.morph) {
+  animation-name: morph-blur;
+}
+
+@keyframes morph-blur {
+  35% {
+    filter: blur(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 /* Motion answers an action, or marks the single page-load moment. Nothing
    fades in just because it scrolled past. */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {
