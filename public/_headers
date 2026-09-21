@@ -1,0 +1,10 @@
+# Cloudflare Workers Assets serves these files directly, without going through
+# the Next server, so `headers()` in next.config.ts never sees them. Its default
+# is to revalidate every file on every page load.
+#
+# Everything under /_next/static is named by a hash of its own contents, so a
+# given URL can never change its meaning and is safe to keep for a year. That
+# saves a round trip per file on every visit, which is what a phone on campus
+# wifi actually feels.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
