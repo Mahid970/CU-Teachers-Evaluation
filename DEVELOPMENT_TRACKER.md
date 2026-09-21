@@ -443,3 +443,53 @@ of the page it was mostly gap. The leaderboard, the directory and each
 department now set their rows in a column.
 
 Also fixed: "1 departments" under Law.
+
+## 32. Rating from any device, and reviews in students' own words
+
+**The problem.** Tokens lived in one browser. Sign in on a laptop and you had
+nothing, and there was no way to give them back — because handing your tokens
+back on proof of your email means we are holding your tokens, and your tokens
+are what your ratings are filed under. One join and we would know what you said.
+
+**The fix: a vault we cannot open.** You choose a passphrase. Your browser turns
+it into a key, encrypts your tokens with it, and uploads only the scrambled
+result. Signing in elsewhere and typing the same words brings them back, along
+with how many teachers you have left to rate.
+
+Three details carry the weight:
+
+- **The stored copy is not filed under your name.** Its label is worked out in
+  your browser from your student ID *and* your passphrase together, so without
+  the passphrase the row cannot be read and cannot be attributed to anybody.
+- **The vault endpoint has no sign-in at all.** It receives a hash and a blob.
+  It is never in a position to see who a vault belongs to.
+- **Rows are wrapped again with a key that is not in the database**, so a leaked
+  copy of the database offers nothing to guess passphrases against.
+
+**There is no reset, and there must not be.** A reset means we could open your
+vault ourselves. The backup file stays for anyone who would rather trust a file
+than remember words.
+
+**Written reviews.** You can now write a few sentences instead of only picking
+from a fixed list. Free text is the most identifying thing a rating can carry,
+and the teacher reading it has the most context to decode it — so:
+
+- Reviews are short, and nothing appears until several students have written one.
+- A review is **never stored beside the scores it came with**. It travels in its
+  own request, is filed under a different value, and lives in a table that
+  shares no key with the ratings. Nobody reading the database — us included —
+  can put a sentence next to the number it arrived with.
+- They are shown in no particular order and without dates.
+
+The tags stayed. They are what the counts on a teacher's page are built from,
+and they are the safe way to say something.
+
+**What it costs, plainly.** Before this, the link between a student and their
+ratings did not exist anywhere. It now exists as ciphertext behind a passphrase.
+The privacy page says so in those words rather than burying it.
+
+The audit script now checks the shape as well as the contents: that ratings and
+reviews share no key, that vaults hold nothing but ciphertext, and that no vault
+lookup matches an issuance row. Twenty-two end-to-end checks pass, including
+that a wrong passphrase opens nothing and a lookup one character out returns
+nothing at all.

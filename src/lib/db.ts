@@ -234,3 +234,33 @@ export async function getOpenTerm(): Promise<{ id: string; label: string } | nul
       .first<{ id: string; label: string }>()) ?? null
   );
 }
+
+/**
+ * Published reviews for one teacher.
+ *
+ * Deliberately thin: the body and nothing else. No date, no order of arrival,
+ * and no way back to the scores that came with it — the reviews table shares no
+ * key with the ratings table, so this query could not join them if it wanted to.
+ *
+ * Nothing is returned until MIN_REVIEWS_TO_SHOW students have written, so a
+ * review is never the only one on a page and can never be the one that appeared
+ * the day after a particular conversation.
+ */
+export async function getTeacherReviews(
+  teacherId: string,
+  minimum: number,
+): Promise<string[]> {
+  const { results } = await (await db())
+    .prepare(
+      // RANDOM() rather than any stored column: even the order they are listed
+      // in should carry nothing.
+      `SELECT body FROM reviews
+       WHERE teacher_id = ?1 AND hidden = 0
+       ORDER BY RANDOM()
+       LIMIT 40`,
+    )
+    .bind(teacherId)
+    .all<{ body: string }>();
+
+  return results.length >= minimum ? results.map((r) => r.body) : [];
+}

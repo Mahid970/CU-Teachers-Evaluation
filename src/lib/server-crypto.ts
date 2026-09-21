@@ -37,15 +37,11 @@ export async function decryptJson<T>(masterKeyBase64: string, payload: string): 
   return JSON.parse(new TextDecoder().decode(plain)) as T;
 }
 
-/**
- * HMAC of a student ID under the term pepper. This is the only value derived
- * from a student that ever reaches storage, and it records nothing but
- * "this ID already collected its tokens for this term".
- */
-export async function studentHmac(pepper: string, studentId: string): Promise<string> {
+/** Keyed hash under a server secret. The secret is what makes it one-way. */
+export async function hmac(secret: string, value: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(pepper) as Uint8Array<ArrayBuffer>,
+    new TextEncoder().encode(secret) as Uint8Array<ArrayBuffer>,
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
@@ -53,9 +49,18 @@ export async function studentHmac(pepper: string, studentId: string): Promise<st
   const mac = await crypto.subtle.sign(
     "HMAC",
     key,
-    new TextEncoder().encode(studentId) as Uint8Array<ArrayBuffer>,
+    new TextEncoder().encode(value) as Uint8Array<ArrayBuffer>,
   );
   return toBase64(new Uint8Array(mac));
+}
+
+/**
+ * HMAC of a student ID under the term pepper. This is the only value derived
+ * from a student that ever reaches storage, and it records nothing but
+ * "this ID already collected its tokens for this term".
+ */
+export async function studentHmac(pepper: string, studentId: string): Promise<string> {
+  return hmac(pepper, studentId);
 }
 
 /** Date with no time component: submissions must not be ordered by clock. */

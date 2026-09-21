@@ -12,6 +12,7 @@ import {
   importBackup,
 } from "@/lib/tokens-client";
 import { useStoredValue } from "@/lib/use-local-storage";
+import { VaultPanel } from "./vault-panel";
 
 type TeacherInfo = { id: string; name: string; designation: string; deptName: string };
 
@@ -48,13 +49,14 @@ export function MyTokens() {
     return (
       <div className="panel mt-10 p-8">
         <p className="display text-2xl">No tokens in this browser</p>
-        <p className="mt-2 text-sm text-ink-muted">
-          Either you have not verified yet on this device, or your browser storage was
-          cleared. If you saved a backup file, restore it here.
+        <p className="prose-measure mt-2 text-sm text-ink-muted">
+          Either you have not verified yet on this device, or your browser storage
+          was cleared. If you set a passphrase, sign in and your tokens will come
+          back. If you saved a backup file instead, restore it here.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/verify" className="btn btn-primary">
-            Verify with Google
+            Sign in to restore
           </Link>
           <button type="button" className="btn btn-quiet" onClick={() => fileInput.current?.click()}>
             <Upload size={16} strokeWidth={1.5} />
@@ -105,6 +107,8 @@ export function MyTokens() {
             style={{ width: `${(done.length / Math.max(bundle.tokens.length, 1)) * 100}%` }}
           />
         </div>
+
+        <VaultPanel bundle={bundle} />
 
         <div className="mt-5 flex flex-wrap gap-3">
           <button type="button" className="btn btn-quiet !py-2 text-sm" onClick={() => downloadBackup(bundle)}>

@@ -46,4 +46,5 @@
   //   GOOGLE_CLIENT_ID OAuth client for @std.cu.ac.bd sign-in
   //   CRON_SECRET      lets the stats rebuild be triggered by hand
   //   TURNSTILE_SECRET optional bot protection
+  //   VAULT_PEPPER     wraps vault rows; without it a leaked database opens nothing
 }

@@ -6,6 +6,8 @@ declare global {
     // generated bindings but present at runtime.
     CRON_SECRET?: string;
     TURNSTILE_SECRET?: string;
+    /** Wraps every vault row, so a copy of the database alone opens nothing. */
+    VAULT_PEPPER?: string;
   }
 }
 

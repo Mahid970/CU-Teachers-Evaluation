@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
-import { AlertCircle, Check, Download, Loader2 } from "lucide-react";
+import { AlertCircle, Check, Download, Loader2, ShieldCheck } from "lucide-react";
 import { motion } from "motion/react";
 import {
+  AlreadyIssuedError,
   LAST_TERM_KEY,
   type IssuableTeacher,
   type TokenBundle,
@@ -14,7 +15,18 @@ import {
   downloadBackup,
   emailHint,
   rememberEmailHint,
+  rememberStudentId,
 } from "@/lib/tokens-client";
+import {
+  VaultError,
+  adoptRestored,
+  deriveVaultKeys,
+  holdKeys,
+  loadVault,
+  saveVault,
+  studentIdFromToken,
+} from "@/lib/vault";
+import { PassphraseForm } from "./passphrase-form";
 import { useStoredValue } from "@/lib/use-local-storage";
 
 type IssueData = {
@@ -26,6 +38,8 @@ type IssueData = {
 };
 
 type Choice = { slug: string; name: string };
+
+type Stage = "idle" | "working" | "choice" | "setup" | "restore" | "done" | "error";
 
 declare global {
   interface Window {
@@ -47,11 +61,14 @@ export function VerifyFlow({
   clientId: string;
   devLogin: boolean;
 }) {
-  const [stage, setStage] = useState<"idle" | "working" | "choice" | "done" | "error">("idle");
+  const [stage, setStage] = useState<Stage>("idle");
   const [message, setMessage] = useState("");
   const [choices, setChoices] = useState<Choice[]>([]);
   const [idToken, setIdToken] = useState("");
   const [bundle, setBundle] = useState<TokenBundle | null>(null);
+  const [vaultBusy, setVaultBusy] = useState(false);
+  const [vaultError, setVaultError] = useState("");
+  const [vaultSaved, setVaultSaved] = useState(false);
   const storedTerm = useStoredValue(LAST_TERM_KEY);
   const storedBundle = useStoredValue(storedTerm ? bundleKey(storedTerm) : "cu_eval_none");
   const existing = useMemo<TokenBundle | null>(
@@ -61,10 +78,20 @@ export function VerifyFlow({
   const [devId, setDevId] = useState("24304043");
   const [progress, setProgress] = useState({ done: 0, total: 0 });
 
+  // The ID is read from the sign-in here in the browser, never fetched. Asking
+  // the server for it would put a student ID and a vault lookup in the same
+  // conversation, which is the one thing the vault design avoids.
+  const studentId = useRef("");
+
   async function verify(token: string, deptChoice?: string) {
     setStage("working");
     setMessage("");
     setIdToken(token);
+    try {
+      studentId.current = studentIdFromToken(token);
+    } catch {
+      studentId.current = "";
+    }
     try {
       const response = await fetch("/api/issue", {
         method: "POST",
@@ -92,11 +119,71 @@ export function VerifyFlow({
       const issued = await collectTokens(token, deptChoice, data, (done, total) =>
         setProgress({ done, total }),
       );
+      rememberStudentId(studentId.current);
       setBundle(issued);
-      setStage("done");
+      setStage("setup");
     } catch (error) {
+      // Not a failure: this student collected their tokens on another device,
+      // so the answer is to open their vault rather than start again.
+      if (error instanceof AlreadyIssuedError) {
+        setStage("restore");
+        setMessage(error.message);
+        return;
+      }
       setStage("error");
       setMessage(error instanceof Error ? error.message : "Something went wrong.");
+    }
+  }
+
+  async function protectTokens(passphrase: string) {
+    if (!bundle) return;
+    setVaultBusy(true);
+    setVaultError("");
+    try {
+      const keys = await deriveVaultKeys(studentId.current, passphrase);
+      await saveVault(keys, bundle);
+      holdKeys(keys);
+      setVaultSaved(true);
+      setStage("done");
+    } catch (error) {
+      setVaultError(
+        error instanceof VaultError || error instanceof Error
+          ? error.message
+          : "Your tokens could not be protected.",
+      );
+    } finally {
+      setVaultBusy(false);
+    }
+  }
+
+  async function restoreTokens(passphrase: string) {
+    setVaultBusy(true);
+    setVaultError("");
+    try {
+      const keys = await deriveVaultKeys(studentId.current, passphrase);
+      const restored = await loadVault(keys);
+      if (!restored) {
+        setVaultError(
+          "Nothing opened with that passphrase. Check it and try again — and if you never set one up, your tokens are still in the browser you first used.",
+        );
+        return;
+      }
+      adoptRestored(restored, keys);
+      rememberStudentId(studentId.current);
+      // Written back straight away, so the vault changes on every sign-in and
+      // not only when somebody rates.
+      void saveVault(keys, restored);
+      setBundle(restored);
+      setVaultSaved(true);
+      setStage("done");
+    } catch (error) {
+      setVaultError(
+        error instanceof VaultError || error instanceof Error
+          ? error.message
+          : "That vault could not be opened.",
+      );
+    } finally {
+      setVaultBusy(false);
     }
   }
 
@@ -152,6 +239,10 @@ export function VerifyFlow({
               <p className="mt-4 text-xs text-ink-muted">
                 We ask Google for one thing: that your address ends in std.cu.ac.bd.
                 No name, no photo, no contacts, and nothing is stored afterwards.
+              </p>
+              <p className="mt-2 text-xs text-ink-muted">
+                Rated on another device already? Sign in with the same account and
+                we will offer to restore your tokens.
               </p>
             </>
           ) : (
@@ -239,6 +330,71 @@ export function VerifyFlow({
         </div>
       )}
 
+      {stage === "setup" && bundle && (
+        <div className="panel p-6">
+          <p className="flex items-center gap-2 font-medium">
+            <Check size={18} strokeWidth={1.5} className="text-brand" />
+            {bundle.tokens.length} tokens collected for {bundle.department.name}
+          </p>
+
+          <hr className="hairline my-5" />
+
+          <p className="display text-2xl">Use these on your other devices</p>
+          <p className="prose-measure mt-2 text-sm text-ink-muted">
+            Choose a passphrase and your browser will encrypt your tokens with it
+            before uploading them. We store the result and cannot read it — signing
+            in on a laptop later and typing the same words is what gets them back.
+          </p>
+
+          <div className="mt-5">
+            <PassphraseForm
+              mode="create"
+              busy={vaultBusy}
+              error={vaultError}
+              submitLabel="Protect my tokens"
+              onSubmit={(value) => void protectTokens(value)}
+            />
+          </div>
+
+          <button
+            type="button"
+            className="mt-4 text-sm text-ink-muted underline underline-offset-2 hover:text-ink"
+            onClick={() => setStage("done")}
+          >
+            Skip — this is the only device I will use
+          </button>
+        </div>
+      )}
+
+      {stage === "restore" && (
+        <div className="panel p-6">
+          <p className="flex items-center gap-2 font-medium">
+            <ShieldCheck size={18} strokeWidth={1.5} className="text-brand" />
+            You have already collected your tokens this term
+          </p>
+          <p className="prose-measure mt-2 text-sm text-ink-muted">
+            They cannot be issued twice — that is what stops anyone rating a teacher
+            more than once. If you set a passphrase, type it and your tokens will come
+            back on this device.
+          </p>
+
+          <div className="mt-5">
+            <PassphraseForm
+              mode="unlock"
+              busy={vaultBusy}
+              error={vaultError}
+              submitLabel="Restore my tokens"
+              onSubmit={(value) => void restoreTokens(value)}
+            />
+          </div>
+
+          <p className="mt-4 text-xs text-ink-muted">
+            No passphrase? Your tokens are still in the browser you first used. Open
+            this site there, save the backup file, and bring it here.
+          </p>
+        </div>
+      )}
+
       {stage === "error" && (
         <div className="panel border-low p-6">
           <p className="flex items-center gap-2 font-medium text-low">
@@ -262,7 +418,7 @@ export function VerifyFlow({
           <span className="absolute -top-3 right-6 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-surface">
             Verified
           </span>
-          
+
           <p className="display text-3xl">{bundle.department.name}</p>
           <p className="mt-1 text-sm text-ink-muted">
             {bundle.termLabel}, session {bundle.session}. You can rate{" "}
@@ -272,9 +428,9 @@ export function VerifyFlow({
           <hr className="hairline my-6" />
 
           <p className="text-sm">
-            Your tokens are now in this browser. They are the only proof that you may
-            rate, and they cannot be issued twice — so keep a backup if you might
-            clear your browser or switch phones.
+            {vaultSaved
+              ? "Your tokens are in this browser and, encrypted, in your vault. Sign in anywhere and type your passphrase to pick up where you left off."
+              : "Your tokens are in this browser only. They cannot be issued twice, so keep a backup if you might clear your browser or switch phones."}
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">

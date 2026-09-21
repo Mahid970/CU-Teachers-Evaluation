@@ -617,6 +617,19 @@ body {
     border-color: var(--brand);
   }
 
+  /* Three bars, so "strong enough" is visible rather than asserted. */
+  .strength-step {
+    height: 4px;
+    flex: 1;
+    border-radius: 2px;
+    background: var(--surface-sunk);
+    transition: background-color 200ms var(--ease);
+  }
+
+  .strength-step[data-on="true"] {
+    background: var(--brand);
+  }
+
   /* Segmented control for sorting — one pressed state, no chrome. */
   .segment {
     white-space: nowrap;
@@ -864,6 +877,26 @@ body {
     r: 9;
     fill: var(--score);
     stroke: var(--score);
+  }
+
+  /* ---- A written review -------------------------------------------------- */
+
+  /* Set apart from the measured parts of the page: this is one person's
+     sentence, not a number, and it should not be mistaken for one. */
+  .review-note {
+    position: relative;
+    padding: 0.9rem 1rem 0.9rem 2.4rem;
+    border-left: 2px solid var(--brand-wash);
+    background: var(--surface);
+    border-radius: 0 10px 10px 0;
+  }
+
+  .review-quote {
+    position: absolute;
+    left: 0.9rem;
+    top: 1.05rem;
+    color: var(--brand);
+    opacity: 0.55;
   }
 
   /* ---- The token pool --------------------------------------------------- */

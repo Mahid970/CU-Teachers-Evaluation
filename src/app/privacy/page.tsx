@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { X } from "lucide-react";
 import { TokenPool } from "@/components/token-pool";
-import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
+import { MIN_RATINGS_TO_SHOW, MIN_REVIEWS_TO_SHOW } from "@/lib/rating";
 
 export const metadata: Metadata = {
   title: "Privacy",
@@ -108,17 +108,85 @@ export default function PrivacyPage() {
           statistics alone can narrow things down. Our threshold reduces this risk but
           cannot remove it.
         </li>
+        <li>
+          <strong className="text-ink">A weak passphrase.</strong> Your encrypted
+          tokens are protected by the words you chose. We make each guess expensive
+          and a leaked database alone cannot be attacked at all — but a passphrase
+          someone could guess is worth less than one they could not. Before the
+          vault existed, this link did not exist in any form; now it exists as
+          ciphertext, and that is a real change we would rather state than bury.
+        </li>
+        <li>
+          <strong className="text-ink">Anything you write.</strong> A written
+          review can identify you no matter what we do with it, if it describes
+          something only you and your teacher know about.
+        </li>
+        <li>
+          <strong className="text-ink">Us.</strong> This site serves you the code
+          that does the encrypting. A version that quietly kept your passphrase
+          would look identical from outside. That has always been true of the
+          rating page; it is worth saying now that it guards something stored.
+        </li>
       </ul>
 
-      <h2 className="display mt-14 text-3xl">Your tokens live in your browser</h2>
-      <p className="mt-4 text-ink-muted">
-        Because we hold nothing about you, we cannot restore your ability to rate if
-        you clear your browser data. Tokens are issued once per term — issuing them
-        again would let one student rate twice. Save the backup file from{" "}
+      <h2 className="display mt-14 text-3xl">Rating from more than one device</h2>
+      <p className="prose-measure mt-4 text-ink-muted">
+        Tokens are issued once per term, because issuing them twice would let one
+        student rate twice. They live in the browser that collected them, which
+        used to mean one device and no way back if you cleared it.
+      </p>
+      <p className="prose-measure mt-4 text-ink-muted">
+        You can now keep an encrypted copy with us instead. Choose a passphrase
+        and your browser derives a key from it, encrypts your tokens, and uploads
+        only the result. Signing in on a laptop and typing the same words brings
+        them back.
+      </p>
+      <p className="prose-measure mt-4 text-ink-muted">
+        Signing in with your email alone could never do this. If we could hand
+        your tokens back on proof of your address, we would be holding your
+        tokens — and your tokens are what your ratings are filed under. One join
+        and we would know what you said. The passphrase is the part we never see,
+        and it is what keeps that join impossible.
+      </p>
+      <p className="prose-measure mt-4 text-ink-muted">
+        The stored copy is not even filed under your name. Its label is derived
+        in your browser from your student ID <em>and</em> your passphrase
+        together, so without the passphrase the row cannot be read and cannot be
+        attributed to anyone. It is wrapped a second time with a key that is not
+        in the database, so a leaked copy of the database offers nothing to guess
+        against.
+      </p>
+      <p className="prose-measure mt-4 text-ink-muted">
+        <strong className="text-ink">There is no reset.</strong> A reset would
+        mean we could open your vault ourselves, which is the whole thing this
+        avoids. If you would rather not rely on remembering, save the backup file
+        from{" "}
         <Link href="/me" className="text-brand hover:underline">
           My ratings
         </Link>{" "}
-        if you might switch device.
+        as well.
+      </p>
+
+      <h2 className="display mt-14 text-3xl">Written reviews</h2>
+      <p className="prose-measure mt-4 text-ink-muted">
+        You can write a few sentences alongside your scores. Be careful with
+        them: free text is the most identifying thing a rating can carry, and the
+        person reading it is the one with the most context to work out who wrote
+        it. A teacher knows who missed the Thursday presentation.
+      </p>
+      <p className="prose-measure mt-4 text-ink-muted">
+        Three things blunt that. Reviews are short by design. None appear until{" "}
+        {MIN_REVIEWS_TO_SHOW} students have written one, so a review is never the
+        only one on a page. And a review is never stored beside the scores it
+        came with — it arrives in a separate request, is filed under a different
+        value, and sits in a table that shares no key with the ratings. Nobody
+        reading our database, including us, can put a sentence next to the number
+        it arrived with.
+      </p>
+      <p className="prose-measure mt-4 text-ink-muted">
+        None of that makes free text safe. It makes it survivable. Write about
+        the teaching, not about a particular class, a particular mark or a
+        particular argument.
       </p>
 
       <p className="mt-12 text-sm text-ink-muted">

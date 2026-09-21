@@ -153,5 +153,72 @@ const repeat = await post("/api/issue", {
 check("the same student cannot collect a second set", repeat.status === 409,
   `status ${repeat.status}`);
 
+// ---- 5. Written reviews -------------------------------------------------
+const review = (token, teacherId, body) =>
+  post("/api/review", {
+    teacherId,
+    prepared: token.prepared,
+    signature: token.signature,
+    body,
+  });
+
+const wrote = await review(tokens[2], tokens[2].teacherId, "Clear, fair and well prepared.");
+check("a valid token may write a review", wrote.status === 200 && wrote.json.ok === true,
+  JSON.stringify(wrote.json).slice(0, 80));
+
+const crossedReview = await review(tokens[2], tokens[3].teacherId, "Not my teacher.");
+check("a review token for teacher A is rejected for teacher B",
+  crossedReview.status === 403, `status ${crossedReview.status}`);
+
+const forgedReview = await review(
+  { prepared: tokens[2].prepared, signature: b64(crypto.getRandomValues(new Uint8Array(256))) },
+  tokens[2].teacherId, "Forged.");
+check("a forged signature cannot write a review", forgedReview.status === 403,
+  `status ${forgedReview.status}`);
+
+const tooLong = await review(tokens[2], tokens[2].teacherId, "x".repeat(401));
+check("a review past the length cap is refused", tooLong.status === 400,
+  `status ${tooLong.status}`);
+
+const removed = await review(tokens[2], tokens[2].teacherId, "   ");
+check("an empty review deletes what was written",
+  removed.status === 200 && removed.json.removed === true,
+  JSON.stringify(removed.json).slice(0, 60));
+
+// ---- 6. The vault -------------------------------------------------------
+const lookup = [...crypto.getRandomValues(new Uint8Array(32))]
+  .map((b) => b.toString(16).padStart(2, "0"))
+  .join("");
+
+const missing = await post("/api/vault", { action: "load", lookup });
+check("an unknown lookup returns nothing, not an error",
+  missing.status === 200 && missing.json.ciphertext === null,
+  JSON.stringify(missing.json).slice(0, 60));
+
+const saved = await post("/api/vault", {
+  action: "save",
+  lookup,
+  term: step1.json.term.id,
+  ciphertext: "AAAAAAAAAAAAAAAA.QkJCQkJCQkJCQkJC",
+});
+check("a vault can be saved", saved.status === 200 && saved.json.ok === true,
+  JSON.stringify(saved.json).slice(0, 60));
+
+const loaded = await post("/api/vault", { action: "load", lookup });
+check("a vault comes back byte for byte",
+  loaded.json.ciphertext === "AAAAAAAAAAAAAAAA.QkJCQkJCQkJCQkJC",
+  String(loaded.json.ciphertext).slice(0, 40));
+
+const nearMiss = await post("/api/vault", {
+  action: "load",
+  lookup: lookup.slice(0, 63) + (lookup[63] === "0" ? "1" : "0"),
+});
+check("a lookup one character out opens nothing",
+  nearMiss.status === 200 && nearMiss.json.ciphertext === null,
+  JSON.stringify(nearMiss.json).slice(0, 60));
+
+const badShape = await post("/api/vault", { action: "load", lookup: "not-a-hash" });
+check("a malformed lookup is refused", badShape.status === 400, `status ${badShape.status}`);
+
 console.log(`\n${failures === 0 ? "All checks passed." : `${failures} check(s) failed.`}`);
 process.exit(failures === 0 ? 0 : 1);

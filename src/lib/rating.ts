@@ -38,6 +38,26 @@ export const MAX_TAGS = 3;
  */
 export const MIN_RATINGS_TO_SHOW = 5;
 
+/**
+ * Written reviews.
+ *
+ * Free text is the most identifying thing a rating can carry, and the person
+ * reading it is the one with the most context to decode it: a teacher knows who
+ * missed the Thursday presentation. Three rules blunt that.
+ *
+ *  - Short. A cap this low leaves room for a judgement and not for an anecdote,
+ *    and gives far less away than a paragraph would.
+ *  - Never alone. Nothing is published until several students have written, so
+ *    a single review can never be the one that appeared after one conversation.
+ *  - Never beside its own scores. Reviews are stored and shown apart from the
+ *    numbers they came with, so a harsh line cannot be paired with a 1 out of 5.
+ *
+ * None of this makes free text safe. It makes it survivable. The guidance shown
+ * beside the box is doing as much work as any of it.
+ */
+export const MAX_REVIEW_LENGTH = 400;
+export const MIN_REVIEWS_TO_SHOW = 5;
+
 /** Prior weight for the Bayesian average (in units of ratings). */
 export const BAYESIAN_PRIOR_WEIGHT = 5;
 /** Fallback prior mean before the site has enough data of its own. */

@@ -1,11 +1,14 @@
 "use client";
 
 /**
- * The student's tokens live here — in their own browser, and nowhere else.
+ * The student's tokens live here, in their own browser.
  *
- * Losing them means losing the ability to rate for the rest of the term, since
- * a second issuance would allow double voting. That is why the UI pushes the
- * backup file.
+ * A second issuance is refused — that is what stops double voting — so losing
+ * this store used to mean losing the ability to rate for the rest of the term.
+ * It no longer has to: `vault.ts` can put an encrypted copy somewhere the
+ * server cannot read, which is what makes rating from a second device possible.
+ * The backup file remains for students who would rather trust a file than a
+ * passphrase.
  */
 import { createBlindRequest, finalizeToken, fromBase64 } from "./blind";
 import { notifyStoredValueChanged } from "./use-local-storage";
@@ -31,6 +34,13 @@ export type TokenBundle = {
 export const bundleKey = (term: string) => `cu_eval_tokens_${term}`;
 export const LAST_TERM_KEY = "cu_eval_last_term";
 export const EMAIL_HINT_KEY = "cu_eval_email";
+/**
+ * The student's own ID, kept locally so the vault key can be re-derived without
+ * asking them to type it again. It is never sent anywhere: the vault endpoint
+ * receives a hash and nothing else. Anyone who can read this can already read
+ * the tokens beside it, so it gives away nothing new.
+ */
+export const STUDENT_KEY = "cu_eval_student";
 
 function read<T>(key: string): T | null {
   try {
@@ -86,10 +96,28 @@ export function forgetDevice(): void {
     if (term) localStorage.removeItem(bundleKey(term));
     localStorage.removeItem(LAST_TERM_KEY);
     localStorage.removeItem(EMAIL_HINT_KEY);
+    localStorage.removeItem(STUDENT_KEY);
   } catch {
     /* nothing to clear */
   }
   notifyStoredValueChanged();
+}
+
+export function rememberStudentId(studentId: string): void {
+  try {
+    if (/^\d{8}$/.test(studentId)) localStorage.setItem(STUDENT_KEY, studentId);
+  } catch {
+    /* the vault setup will ask for it instead */
+  }
+  notifyStoredValueChanged();
+}
+
+export function storedStudentId(): string {
+  try {
+    return localStorage.getItem(STUDENT_KEY) ?? "";
+  } catch {
+    return "";
+  }
 }
 
 export function rememberEmailHint(email: string): void {
@@ -109,6 +137,13 @@ export function emailHint(): string {
 }
 
 /* ---- Issuance ---------------------------------------------------------- */
+
+/**
+ * Thrown when a student has already collected their tokens this term, so there
+ * is nothing left to issue. It is not a failure — it means they should restore
+ * from their vault rather than start again.
+ */
+export class AlreadyIssuedError extends Error {}
 
 export type IssuableTeacher = {
   id: string;
@@ -154,6 +189,7 @@ export async function collectTokens(
 
   const chunkCount = Math.ceil(total / chunkSize);
   let firstError: string | null = null;
+  let alreadyIssued = false;
 
   for (let chunk = 0; chunk < chunkCount; chunk += 1) {
     const slice = data.teachers.slice(chunk * chunkSize, chunk * chunkSize + chunkSize);
@@ -186,6 +222,7 @@ export async function collectTokens(
       // A chunk already issued on another device is skipped, not fatal: the
       // student can still collect the teachers they have not been served.
       if (payload.alreadyIssued) {
+        alreadyIssued = true;
         firstError ??= payload.error ?? null;
         if (typeof payload.nextChunk === "number" && payload.nextChunk > chunk) {
           chunk = payload.nextChunk - 1;
@@ -215,6 +252,11 @@ export async function collectTokens(
   }
 
   if (bundle.tokens.length === 0) {
+    if (alreadyIssued) {
+      throw new AlreadyIssuedError(
+        firstError ?? "You have already collected your tokens this term.",
+      );
+    }
     throw new Error(firstError ?? "No tokens could be issued.");
   }
 

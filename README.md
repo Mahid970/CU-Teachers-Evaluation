@@ -25,6 +25,19 @@ rating is never created.
    of term makes those rows unreadable forever.
 4. **Rating.** Submitted with no cookie and no sign-in, carrying only the token.
    Stored keyed by the token's hash, with the **date only**.
+5. **Written reviews.** Carried by the same token but filed under a *different*
+   hash of it (`reviewHash` vs `tokenHash`), sent in a separate request, and
+   stored in a table that shares no value with `ratings`. Nothing in the
+   database pairs a sentence with the scores it arrived with. The table is
+   `WITHOUT ROWID`, so insertion order cannot be used to line the two up either.
+6. **The vault (rating from a second device).** The browser derives a key from a
+   passphrase with PBKDF2-SHA512, encrypts the token bundle, and uploads only
+   the ciphertext. The row's lookup is derived from the student ID *and* the
+   passphrase together and computed in the browser, so `/api/vault` never sees
+   an identity — it takes a hash and a blob, and has no sign-in at all. Rows are
+   wrapped a second time under `VAULT_PEPPER`, a Workers secret, so a leaked
+   database on its own gives an attacker nothing to guess passphrases against.
+   There is no reset: a reset would mean the server could open a vault itself.
 
 Signing uses Cloudflare's native `RSA-RAW` when running on Workers: one round of
 tokens for a department takes ~60 ms there, against ~9 s on a plain Node dev
@@ -41,11 +54,21 @@ platform logs are off; there are no analytics and no cookies.
 | `teacher_term_keys` | per-teacher signing keys | no |
 | `issuances` | HMAC of a student ID, date | only until the pepper is rotated |
 | `ratings` | token hash, scores, tags, date | no |
+| `reviews` | review hash, body, date | no — and no key in common with `ratings` |
+| `vaults` | peppered lookup, doubly-encrypted bundle | not without the student's passphrase |
 | `teacher_stats` | daily aggregates | no |
 
 Run `npm run audit:privacy -- 24304043` after any change to the issuance or
 rating path. It dumps every table and fails if a student ID, an email, an IP or
-a full timestamp appears anywhere.
+a full timestamp appears anywhere. It also checks the shape rather than only the
+contents: that `ratings` and `reviews` share no key, that `vaults` holds nothing
+but ciphertext, and that no vault lookup matches an issuance hash.
+
+**What the vault costs.** Before it existed, the link between a student and
+their ratings did not exist anywhere, in any form. It now exists as ciphertext,
+protected by the student's passphrase. A weak passphrase is worth less than a
+strong one, and whoever serves this site's JavaScript could capture one as it is
+typed. Both are stated plainly on the privacy page rather than buried.
 
 ---
 
@@ -115,6 +138,7 @@ never enabled in production.
    npx wrangler secret put TERM_PEPPER
    npx wrangler secret put GOOGLE_CLIENT_ID
    npx wrangler secret put CRON_SECRET
+   npx wrangler secret put VAULT_PEPPER       # wraps every vault row
    npx wrangler secret put TURNSTILE_SECRET   # optional
    ```
 3. Google Cloud console: create an OAuth client (Web), add the site's origin to

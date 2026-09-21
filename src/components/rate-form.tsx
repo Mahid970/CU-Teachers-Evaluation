@@ -2,16 +2,23 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, PenLine } from "lucide-react";
 import { motion } from "motion/react";
 import { StarInput } from "./stars";
-import { CRITERIA, type CriterionKey, MAX_TAGS, TAGS } from "@/lib/rating";
+import {
+  CRITERIA,
+  type CriterionKey,
+  MAX_REVIEW_LENGTH,
+  MAX_TAGS,
+  TAGS,
+} from "@/lib/rating";
 import {
   LAST_TERM_KEY,
   type TokenBundle,
   bundleKey,
   markRated,
 } from "@/lib/tokens-client";
+import { syncVault } from "@/lib/vault";
 import { useStoredValue } from "@/lib/use-local-storage";
 
 type Scores = Record<CriterionKey | "overall" | "difficulty", number>;
@@ -43,6 +50,7 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
   const [scores, setScores] = useState<Scores>(EMPTY);
   const [takeAgain, setTakeAgain] = useState<boolean | null>(null);
   const [tags, setTags] = useState<string[]>([]);
+  const [review, setReview] = useState("");
   const [stage, setStage] = useState<"form" | "sending" | "sent" | "error">("form");
   const [message, setMessage] = useState("");
 
@@ -76,7 +84,30 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(payload.error ?? "That rating was not accepted.");
 
-      if (bundle) markRated(bundle.term, teacherId);
+      // The review goes in a request of its own, keyed by a different hash of
+      // the same token. Sending both together would put the sentence and the
+      // scores in one place, which is exactly what is being avoided.
+      if (review.trim().length > 0) {
+        await fetch("/api/review", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            teacherId,
+            prepared: token.prepared,
+            signature: token.signature,
+            body: review,
+          }),
+        }).catch(() => {
+          // The scores are in. A failed review must not lose them.
+        });
+      }
+
+      if (bundle) {
+        markRated(bundle.term, teacherId);
+        // Carries the progress to the student's other devices, if this tab has
+        // been unlocked. Silent, and never blocking.
+        void syncVault(bundle.term);
+      }
       setStage("sent");
     } catch (error) {
       setStage("error");
@@ -213,7 +244,7 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
               Tags <span className="font-normal text-ink-muted">(up to {MAX_TAGS}, optional)</span>
             </legend>
             <p className="mt-1 text-xs text-ink-muted">
-              A fixed list, because written comments can identify the student who wrote them.
+              A fixed list, so these can be counted across everyone who rated.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {TAGS.map((tag) => {
@@ -241,6 +272,37 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
                 );
               })}
             </div>
+          </fieldset>
+
+          <fieldset>
+            <legend className="flex items-center gap-2 font-medium">
+              <PenLine size={16} strokeWidth={1.75} className="text-brand" aria-hidden="true" />
+              In your own words
+              <span className="font-normal text-ink-muted">(optional)</span>
+            </legend>
+            <p className="prose-measure mt-1 text-xs text-ink-muted">
+              Write about the teaching, not about you. Anything that points at a
+              particular class, a particular assignment or a particular argument
+              can identify you to the one person who already knows what happened.
+              Reviews appear only once several students have written one, and are
+              never shown next to the scores they came with.
+            </p>
+            <textarea
+              value={review}
+              onChange={(e) => setReview(e.target.value.slice(0, MAX_REVIEW_LENGTH))}
+              rows={4}
+              maxLength={MAX_REVIEW_LENGTH}
+              placeholder="Explains difficult topics patiently and marks fairly."
+              className="field mt-3 resize-y"
+              aria-describedby="review-count"
+            />
+            <p
+              id="review-count"
+              className="numerals mt-1 text-right text-xs text-ink-muted"
+              aria-live="polite"
+            >
+              {review.length} / {MAX_REVIEW_LENGTH}
+            </p>
           </fieldset>
         </div>
       </div>

@@ -13,9 +13,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 # CU Teachers Evaluation — rules for this project
 
 The privacy design is the product. Before changing anything under
-`src/app/api/`, `src/lib/blind.ts`, `src/lib/server-crypto.ts` or
-`src/lib/guard.ts`, read the "How anonymity actually works" section of the
-README.
+`src/app/api/`, `src/lib/blind.ts`, `src/lib/server-crypto.ts`,
+`src/lib/vault.ts` or `src/lib/guard.ts`, read the "How anonymity actually
+works" section of the README.
 
 Hard rules:
 
@@ -28,7 +28,24 @@ Hard rules:
    and it must stay unlinkable to a sign-in.
 4. **Aggregates rebuild on a schedule, never on write.** Live updates would let
    a teacher time a rating to a student.
-5. **No free-text fields on ratings.** Writing style identifies people.
+5. **A written review is never stored beside its own scores.** Free text is the
+   most identifying thing a rating carries, and the teacher reading it has the
+   most context to decode it. So a review is filed under a *different* hash of
+   the token (`reviewHash`, not `tokenHash`), sent in its own request, and kept
+   in a table that shares no value with `ratings`. Never insert them together,
+   never return them together, and never publish one before
+   `MIN_REVIEWS_TO_SHOW` exist. The `reviews` table is `WITHOUT ROWID` on
+   purpose: insertion order is itself a way to line the two tables up.
+6. **The vault is ciphertext we cannot open.** `/api/vault` receives a lookup
+   and a blob, and nothing else. Never add a sign-in to it, never accept a
+   student ID there, and never derive the lookup server-side: an endpoint that
+   sees an identity and a lookup in one request can record the pair, which is
+   precisely the link everything above exists to prevent. The lookup is
+   computed in the browser from the student's ID *and* their passphrase, so the
+   stored row cannot be attributed to anyone without the passphrase.
+7. **There is no passphrase reset, and there must not be.** A reset means the
+   server can open a vault by itself. If a feature needs that, the feature is
+   wrong.
 
 After touching any of that, run:
 

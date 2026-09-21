@@ -11,6 +11,7 @@ import {
   Hourglass,
   Lightbulb,
   MessagesSquare,
+  Quote,
   Repeat2,
   Scale,
   Star,
@@ -18,8 +19,13 @@ import {
 import { StarRow } from "@/components/stars";
 import { TeacherAvatar } from "@/components/teacher-card";
 import { DEPARTMENT_BY_SLUG, FACULTY_BY_KEY } from "@/lib/departments";
-import { getTeacher, getTeachersByDept } from "@/lib/db";
-import { CRITERIA, MIN_RATINGS_TO_SHOW, TAGS } from "@/lib/rating";
+import { getTeacher, getTeacherReviews, getTeachersByDept } from "@/lib/db";
+import {
+  CRITERIA,
+  MIN_RATINGS_TO_SHOW,
+  MIN_REVIEWS_TO_SHOW,
+  TAGS,
+} from "@/lib/rating";
 
 export const revalidate = 300;
 
@@ -57,6 +63,8 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
   const colleagues = (await getTeachersByDept(teacher.dept_slug))
     .filter((t) => t.id !== teacher.id)
     .slice(0, 4);
+
+  const reviews = await getTeacherReviews(teacher.id, MIN_REVIEWS_TO_SHOW);
 
   const maxBar = stats ? Math.max(...stats.distribution, 1) : 1;
   const topTags = stats
@@ -177,9 +185,40 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
                     ))}
                   </ul>
                   <p className="prose-measure mt-4 text-sm text-ink-muted">
-                    Students choose from a fixed list. Written comments are not
-                    collected, because writing style can identify the student who
-                    wrote them.
+                    Students choose these from a fixed list, so they can be
+                    counted across everyone who rated.
+                  </p>
+                </>
+              )}
+
+              {reviews.length > 0 && (
+                <>
+                  <h2 className="reveal display mt-12 text-2xl">In students&apos; words</h2>
+                  <p className="prose-measure mt-2 text-sm text-ink-muted">
+                    Written by verified students of this department. They are shown
+                    in no particular order, without dates, and are not stored beside
+                    the scores they came with — so none of them can be traced back to
+                    a rating, or to a person.
+                  </p>
+                  <ul className="mt-5 space-y-3">
+                    {reviews.map((body, i) => (
+                      <li key={i} className="reveal review-note">
+                        <Quote
+                          size={15}
+                          strokeWidth={1.75}
+                          className="review-quote"
+                          aria-hidden="true"
+                        />
+                        <p>{body}</p>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="prose-measure mt-4 text-sm text-ink-muted">
+                    Something here is abusive or names a person?{" "}
+                    <Link href="/corrections" className="link-grow text-brand">
+                      Report it
+                    </Link>
+                    .
                   </p>
                 </>
               )}

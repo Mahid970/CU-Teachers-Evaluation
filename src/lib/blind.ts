@@ -61,19 +61,48 @@ export async function importPrivateKey(jwk: JsonWebKey): Promise<CryptoKey> {
   ]);
 }
 
-/** SHA-256 of the finished token, used as the rating's primary key. */
-export async function tokenHash(
+/**
+ * SHA-256 over the token, in one of two domains.
+ *
+ * A rating and a written review are carried by the same token but filed under
+ * different hashes of it, so the two tables share no value. That is what stops
+ * anyone holding the database from reading "never turns up" next to the 1 out
+ * of 5 it arrived with — and it is why the domain string is not cosmetic.
+ */
+async function digestToken(
   preparedMsg: Uint8Array,
   signature: Uint8Array,
+  domain: string,
 ): Promise<string> {
-  const joined = new Uint8Array(new ArrayBuffer(preparedMsg.length + signature.length));
+  const suffix = new TextEncoder().encode(domain);
+  const joined = new Uint8Array(
+    new ArrayBuffer(preparedMsg.length + signature.length + suffix.length),
+  );
   joined.set(preparedMsg, 0);
   joined.set(signature, preparedMsg.length);
+  joined.set(suffix, preparedMsg.length + signature.length);
   const digest = await crypto.subtle.digest("SHA-256", joined);
   return toBase64(new Uint8Array(digest)).replace(/[+/=]/g, (c) =>
     c === "+" ? "-" : c === "/" ? "_" : "",
   );
 }
+
+/** The rating's primary key. */
+export async function tokenHash(
+  preparedMsg: Uint8Array,
+  signature: Uint8Array,
+): Promise<string> {
+  return digestToken(preparedMsg, signature, "");
+}
+
+/** The review's primary key. Unrelatable to the rating's, without the token. */
+export async function reviewHash(
+  preparedMsg: Uint8Array,
+  signature: Uint8Array,
+): Promise<string> {
+  return digestToken(preparedMsg, signature, "review-v1");
+}
+
 
 /* ---- Client side ------------------------------------------------------- */
 
