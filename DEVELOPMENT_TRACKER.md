@@ -493,3 +493,19 @@ reviews share no key, that vaults hold nothing but ciphertext, and that no vault
 lookup matches an issuance row. Twenty-two end-to-end checks pass, including
 that a wrong passphrase opens nothing and a lookup one character out returns
 nothing at all.
+
+## 33. A plainer, bigger navbar
+
+The icons have come out of the menu — the words say it better on their own, and
+four small pictures competing with the crest made the bar busier than it needed
+to be. The menu items are set bold, and the page you are on is bolder still with
+a rule under it.
+
+**The crest is larger**, up by about a third, and the name beside it with it.
+The footer lockup grew to match.
+
+The icons had been doing a second job: on a phone the words were dropped and the
+icons stood in for them. With the icons gone the bar wraps instead — the crest
+and the buttons hold the first line, the four links take a line of their own.
+Everything stays one tap away rather than folding into a menu, and at the
+narrowest common phone width all four still fit without scrolling.

@@ -476,7 +476,7 @@ body {
      no second file for the dark theme. */
   .site-crest {
     display: block;
-    height: 2.25rem;
+    height: 2.9rem;
     aspect-ratio: 429 / 581;
     background: currentColor;
     -webkit-mask: url("/cu-logo.svg") no-repeat center / contain;
@@ -492,15 +492,18 @@ body {
     display: flex;
     flex-direction: column;
     font-family: var(--font-display);
-    font-weight: 600;
+    font-weight: 700;
     font-variation-settings: "wdth" 108;
-    font-size: 0.95rem;
-    line-height: 1.12;
-    letter-spacing: -0.015em;
+    font-size: 1.08rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
     white-space: nowrap;
   }
 
-  @media (max-width: 420px) {
+  /* The links moved to a line of their own, which freed enough room to keep
+     the full lockup on a phone. Only the very narrowest screens drop the
+     words. */
+  @media (max-width: 340px) {
     .site-wordmark {
       display: none;
     }
@@ -508,22 +511,30 @@ body {
 
   /* The footer has room to set the lockup properly. */
   .site-mark-lg .site-crest {
-    height: 3.25rem;
+    height: 3.9rem;
   }
 
   .site-mark-lg .site-wordmark {
     display: flex;
-    font-size: 1.3rem;
+    font-size: 1.45rem;
+  }
+
+  .site-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
   }
 
   .nav-link {
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 0.65rem;
+    padding: 0.5rem 0.7rem;
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
     color: var(--ink-muted);
     transition:
       color 160ms var(--ease),
@@ -537,7 +548,7 @@ body {
 
   .nav-link[data-active="true"] {
     color: var(--ink);
-    font-weight: 600;
+    font-weight: 700;
   }
 
   /* The page you are on keeps a rule under it; hovering anything else draws
@@ -545,8 +556,8 @@ body {
   .nav-link::after {
     content: "";
     position: absolute;
-    left: 0.65rem;
-    right: 0.65rem;
+    left: 0.7rem;
+    right: 0.7rem;
     bottom: 0.2rem;
     height: 2px;
     border-radius: 2px;
@@ -563,17 +574,26 @@ body {
   }
 
   @media (max-width: 640px) {
-    .nav-label {
-      display: none;
+    .site-nav {
+      padding-top: 0.15rem;
     }
 
     .nav-link {
-      padding: 0.5rem;
+      padding: 0.45rem 0.55rem;
+      font-size: 0.9rem;
     }
 
     .nav-link::after {
-      left: 0.35rem;
-      right: 0.35rem;
+      left: 0.55rem;
+      right: 0.55rem;
+    }
+  }
+
+  /* Only the crest below this: the two-line wordmark and four link labels
+     cannot share a line at the narrowest sizes. */
+  @media (max-width: 380px) {
+    .site-crest {
+      height: 2.5rem;
     }
   }
 
