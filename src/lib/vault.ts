@@ -38,6 +38,19 @@ const hex = (buffer: ArrayBuffer) =>
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
+/**
+ * What a passphrase means, as opposed to how it was typed.
+ *
+ * Phone keyboards capitalise the first letter, autocorrect words and add a
+ * space after a suggestion, and none of that is visible in a password field.
+ * A vault must open with the words, not the keystrokes, so case, spacing and
+ * Unicode forms are all folded before anything is derived. It costs a little
+ * entropy and saves students from locking themselves out.
+ */
+export function normalizePassphrase(passphrase: string): string {
+  return passphrase.normalize("NFKC").toLowerCase().trim().replace(/\s+/g, " ");
+}
+
 export type VaultKeys = {
   /** Names the row on the server. Reveals neither the ID nor the passphrase. */
   lookup: string;
@@ -59,7 +72,7 @@ export async function deriveVaultKeys(
 ): Promise<VaultKeys> {
   const material = await crypto.subtle.importKey(
     "raw",
-    bytes(passphrase.normalize("NFKC").trim()),
+    bytes(normalizePassphrase(passphrase)),
     "PBKDF2",
     false,
     ["deriveBits"],

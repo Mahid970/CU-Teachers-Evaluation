@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import { Eye, EyeOff, KeyRound, Loader2 } from "lucide-react";
+import { normalizePassphrase } from "@/lib/vault";
 
 /**
  * The passphrase field.
@@ -16,7 +17,8 @@ const MIN_LENGTH = 12;
 /** Rough, and deliberately so: length carries most of it, variety the rest. */
 function strengthOf(value: string): { score: 0 | 1 | 2 | 3; label: string } {
   const words = value.trim().split(/\s+/).filter(Boolean).length;
-  const classes = [/[a-z]/, /[A-Z]/, /\d/, /[^a-zA-Z0-9]/].filter((r) => r.test(value)).length;
+  // Capitals are folded away before the key is derived, so they earn nothing.
+  const classes = [/[a-z]/i, /\d/, /[^a-zA-Z0-9\s]/].filter((r) => r.test(value)).length;
   if (value.length < MIN_LENGTH) return { score: 0, label: "Too short" };
   if (value.length >= 20 || words >= 4) return { score: 3, label: "Strong" };
   if (value.length >= 16 || classes >= 3) return { score: 2, label: "Good" };
@@ -43,9 +45,12 @@ export function PassphraseForm({
 
   const strength = strengthOf(value);
   const creating = mode === "create";
-  const mismatch = creating && confirmValue.length > 0 && confirmValue !== value;
+  // Compared the way the vault will read them, so "Mango river" and
+  // "mango river" count as the same passphrase here too.
+  const same = normalizePassphrase(confirmValue) === normalizePassphrase(value);
+  const mismatch = creating && confirmValue.length > 0 && !same;
   const ready = creating
-    ? strength.score > 0 && value === confirmValue && !busy
+    ? strength.score > 0 && same && !busy
     : value.length > 0 && !busy;
 
   return (
@@ -72,6 +77,9 @@ export function PassphraseForm({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           autoComplete={creating ? "new-password" : "current-password"}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           className="field px-9"
           placeholder={creating ? "three or four words you will remember" : ""}
           autoFocus
@@ -85,6 +93,9 @@ export function PassphraseForm({
           {shown ? <EyeOff size={16} strokeWidth={1.5} /> : <Eye size={16} strokeWidth={1.5} />}
         </button>
       </div>
+      <p className="mt-1.5 text-xs text-ink-muted">
+        Capital letters and extra spaces do not matter.
+      </p>
 
       {creating && (
         <>
@@ -106,6 +117,9 @@ export function PassphraseForm({
             value={confirmValue}
             onChange={(e) => setConfirm(e.target.value)}
             autoComplete="new-password"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             className="field mt-3"
             placeholder="Type it again"
             aria-label="Confirm passphrase"

@@ -14,6 +14,7 @@ import {
   collectTokens,
   downloadBackup,
   emailHint,
+  loadBundle,
   rememberEmailHint,
   rememberStudentId,
 } from "@/lib/tokens-client";
@@ -92,6 +93,7 @@ export function VerifyFlow({
     } catch {
       studentId.current = "";
     }
+    let termId: string | undefined;
     try {
       const response = await fetch("/api/issue", {
         method: "POST",
@@ -115,6 +117,7 @@ export function VerifyFlow({
       }
 
       const data = payload as IssueData;
+      termId = data.term.id;
       setProgress({ done: 0, total: data.teachers.length });
       const issued = await collectTokens(token, deptChoice, data, (done, total) =>
         setProgress({ done, total }),
@@ -126,6 +129,16 @@ export function VerifyFlow({
       // Not a failure: this student collected their tokens on another device,
       // so the answer is to open their vault rather than start again.
       if (error instanceof AlreadyIssuedError) {
+        // The tokens may be right here: this browser collected them before it
+        // had a vault to put them in. Then the job is to protect them, not to
+        // restore something that was never saved.
+        const local = termId ? loadBundle(termId) : null;
+        if (local && local.tokens.length > 0) {
+          rememberStudentId(studentId.current);
+          setBundle(local);
+          setStage("setup");
+          return;
+        }
         setStage("restore");
         setMessage(error.message);
         return;
