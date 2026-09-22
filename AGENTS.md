@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- BEGIN:project-rules -->
 
-# CU Teachers Evaluation — rules for this project
+# CU Teachers’ Evaluation — rules for this project
 
 The privacy design is the product. Before changing anything under
 `src/app/api/`, `src/lib/blind.ts`, `src/lib/server-crypto.ts`,

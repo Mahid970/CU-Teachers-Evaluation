@@ -21,8 +21,8 @@ const instrumentSans = Instrument_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "CU Teachers Evaluation",
-    template: "%s · CU Teachers Evaluation",
+    default: "CU Teachers’ Evaluation",
+    template: "%s · CU Teachers’ Evaluation",
   },
   description:
     "Anonymous teacher ratings by verified University of Chittagong students. No emails, names or IP addresses are ever stored.",

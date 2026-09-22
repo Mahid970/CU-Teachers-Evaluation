@@ -13,11 +13,11 @@ export function SiteMark({ className = "" }: { className?: string }) {
     <Link
       href="/"
       className={`site-mark ${className}`}
-      aria-label="CU Teachers Evaluation, home"
+      aria-label="CU Teachers’ Evaluation, home"
     >
       <span className="site-crest" aria-hidden="true" />
       <span className="site-wordmark" aria-hidden="true">
-        <span>CU Teachers</span>
+        <span>CU Teachers’</span>
         <span>Evaluation</span>
       </span>
     </Link>
