@@ -59,9 +59,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       // Tells Next the smooth scrolling is deliberate, so route changes jump
       // instead of gliding the whole page to the top.
       data-scroll-behavior="smooth"
+      // Extensions such as Grammarly write attributes onto <html> and <body>
+      // before React loads. This only ignores attribute differences on these
+      // two tags; mismatches anywhere inside them are still reported.
+      suppressHydrationWarning
       className={`${archivo.variable} ${instrumentSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-ground text-ink">
+      <body className="min-h-full flex flex-col bg-ground text-ink" suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: RECOVER_STALE_PAGE }} />
         <SiteHeader />
         <main className="flex-1">{children}</main>

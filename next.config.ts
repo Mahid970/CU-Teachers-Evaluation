@@ -45,6 +45,12 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         headers: [{ key: "Cache-Control", value: "no-store" }],
       },
+      // `next dev` keeps one stylesheet name across edits yet marks it
+      // immutable, so a browser that has seen the page never picks up a CSS
+      // change. Production names files by content, so this is dev only.
+      ...(process.env.NODE_ENV === "development"
+        ? [{ source: "/_next/static/:path*", headers: [{ key: "Cache-Control", value: "no-store" }] }]
+        : []),
     ];
   },
 };
