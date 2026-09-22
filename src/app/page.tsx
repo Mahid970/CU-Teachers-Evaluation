@@ -2,9 +2,17 @@ import Link from "next/link";
 import {
   ArrowUpRight,
   Building2,
+  CalendarDays,
+  Check,
+  Clock,
+  Cookie,
+  Globe,
   IdCard,
   LogIn,
+  Mail,
+  ShieldCheck,
   Star,
+  UserRound,
   Users,
   VenetianMask,
   X,
@@ -69,20 +77,22 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <dl className="reveal mt-14 grid gap-x-10 gap-y-8 border-t border-hairline pt-8 sm:grid-cols-3">
+        <dl className="stat-strip reveal mt-14">
           {[
-            { Icon: Users, value: counts.teachers, label: "Teachers listed" },
-            { Icon: Building2, value: counts.departments, label: "Departments" },
-            { Icon: Star, value: counts.ratings, label: "Ratings so far" },
-          ].map(({ Icon, value, label }) => (
-            <div key={label} className="flex items-center gap-4">
+            { Icon: Users, value: counts.teachers, label: "Teachers listed", note: "across every faculty" },
+            { Icon: Building2, value: counts.departments, label: "Departments", note: "and institutes" },
+            { Icon: Star, value: counts.ratings, label: "Ratings so far", note: "from verified students" },
+          ].map(({ Icon, value, label, note }) => (
+            <div key={label} className="stat-tile">
+              <Icon className="stat-watermark" size={96} strokeWidth={1} aria-hidden="true" />
               <span className="stat-icon" aria-hidden="true">
-                <Icon size={20} strokeWidth={1.5} />
+                <Icon size={20} strokeWidth={1.75} />
               </span>
-              <div>
-                <dd className="score text-3xl"><CountUp value={value} /></dd>
-                <dt className="mt-1 text-sm text-ink-muted">{label}</dt>
-              </div>
+              <dd className="score mt-5 text-4xl"><CountUp value={value} /></dd>
+              <dt className="mt-2 font-semibold">
+                {label}
+                <span className="mt-0.5 block text-sm font-normal text-ink-muted">{note}</span>
+              </dt>
             </div>
           ))}
         </dl>
@@ -125,7 +135,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-16">
         <h2 className="reveal display text-3xl">Three steps, then nothing left behind</h2>
 
-        <ol className="mt-8 grid gap-8 md:grid-cols-3">
+        <ol className="step-track mt-10">
           {[
             {
               Icon: LogIn,
@@ -143,14 +153,15 @@ export default async function HomePage() {
               body: "Your browser holds signed tokens that prove you may rate, without saying who you are.",
             },
           ].map(({ Icon, title, body }, i) => (
-            <li key={title} className="reveal border-t-2 border-ink pt-4">
+            <li key={title} className="step-card reveal">
+              <span className="step-numeral" aria-hidden="true">{i + 1}</span>
               <div className="flex items-center gap-3">
-                <span className="stat-icon" aria-hidden="true">
-                  <Icon size={20} strokeWidth={1.5} />
+                <span className="stat-icon step-icon" aria-hidden="true">
+                  <Icon size={20} strokeWidth={1.75} />
                 </span>
-                <span className="score text-lg text-ink-muted">{i + 1}</span>
+                <span className="text-sm font-semibold text-ink-muted">Step {i + 1}</span>
               </div>
-              <h3 className="display mt-3 text-xl">{title}</h3>
+              <h3 className="display mt-4 text-xl">{title}</h3>
               <p className="mt-2 text-ink-muted">{body}</p>
             </li>
           ))}
@@ -162,7 +173,10 @@ export default async function HomePage() {
         <div className="mx-auto max-w-6xl px-4 py-16">
           <div className="grid gap-10 lg:grid-cols-12">
             <div className="reveal lg:col-span-5">
-              <h2 className="display text-3xl">What we never store</h2>
+              <span className="vow-badge" aria-hidden="true">
+                <ShieldCheck size={26} strokeWidth={1.5} />
+              </span>
+              <h2 className="display mt-5 text-3xl">What we never store</h2>
               <p className="prose-measure mt-3 text-ink-muted">
                 A student who rates honestly should never face consequences for
                 it, so the link between a person and a rating is never created in
@@ -177,30 +191,43 @@ export default async function HomePage() {
             </div>
 
             <div className="reveal lg:col-span-7">
-              <ul className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+              <ul className="grid gap-3 sm:grid-cols-2">
                 {[
-                  "Your email address",
-                  "Your student ID",
-                  "Your name",
-                  "Your IP address",
-                  "The time you rated",
-                  "Cookies of any kind",
-                ].map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-baseline gap-3 border-b border-hairline pb-3 text-ink-muted"
-                  >
-                    <span className="ledger-cross" aria-hidden="true">
-                      <X size={13} strokeWidth={2.5} />
+                  { Icon: Mail, item: "Your email address" },
+                  { Icon: IdCard, item: "Your student ID" },
+                  { Icon: UserRound, item: "Your name" },
+                  { Icon: Globe, item: "Your IP address" },
+                  { Icon: Clock, item: "The time you rated" },
+                  { Icon: Cookie, item: "Cookies of any kind" },
+                ].map(({ Icon, item }) => (
+                  <li key={item} className="never-tile">
+                    <span className="never-icon" aria-hidden="true">
+                      <Icon size={18} strokeWidth={1.75} />
+                      <span className="ledger-cross">
+                        <X size={10} strokeWidth={3} />
+                      </span>
                     </span>
-                    <span className="line-through">{item}</span>
+                    <span className="never-text">{item}</span>
                   </li>
                 ))}
               </ul>
-              <p className="mt-5 text-sm text-ink-muted">
-                Kept instead: the scores themselves, the date, and a token that
-                belongs to nobody.
-              </p>
+
+              <div className="kept-card mt-4">
+                <p className="text-sm font-semibold">Kept instead</p>
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {[
+                    { Icon: Star, item: "The scores" },
+                    { Icon: CalendarDays, item: "The date" },
+                    { Icon: VenetianMask, item: "A token that belongs to nobody" },
+                  ].map(({ Icon, item }) => (
+                    <li key={item} className="kept-chip">
+                      <Icon size={14} strokeWidth={2} aria-hidden="true" />
+                      {item}
+                      <Check size={14} strokeWidth={2.5} className="text-brand" aria-hidden="true" />
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </div>

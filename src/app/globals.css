@@ -374,6 +374,301 @@ body {
     transform: translate(2px, -2px);
   }
 
+  /* ---- Home: the numbers ---------------------------------------------- */
+
+  /* One bordered strip split into three, rather than three floating cards:
+     the figures belong together. */
+  .stat-strip {
+    display: grid;
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  @media (min-width: 640px) {
+    .stat-strip {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .stat-tile {
+    position: relative;
+    padding: 1.5rem 1.5rem 1.4rem;
+    overflow: hidden;
+    transition: background-color 220ms var(--ease);
+  }
+
+  .stat-tile + .stat-tile {
+    border-top: 1px solid var(--hairline);
+  }
+
+  @media (min-width: 640px) {
+    .stat-tile + .stat-tile {
+      border-top: 0;
+      border-left: 1px solid var(--hairline);
+    }
+  }
+
+  /* An amber rule grows along the top edge of the tile you point at. */
+  .stat-tile::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: var(--score);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 320ms var(--ease);
+  }
+
+  .stat-watermark {
+    position: absolute;
+    right: -0.9rem;
+    bottom: -1.1rem;
+    color: var(--brand);
+    opacity: 0.06;
+    transform: rotate(-12deg);
+    transition:
+      transform 420ms var(--ease),
+      opacity 220ms var(--ease);
+  }
+
+  .stat-tile .stat-icon,
+  .step-card .stat-icon {
+    transition:
+      background-color 200ms var(--ease),
+      color 200ms var(--ease),
+      transform 320ms var(--ease);
+  }
+
+  .stat-tile .score {
+    transition: color 200ms var(--ease);
+  }
+
+  .stat-tile:hover {
+    background: var(--brand-wash);
+  }
+
+  .stat-tile:hover::before {
+    transform: scaleX(1);
+  }
+
+  .stat-tile:hover .stat-watermark {
+    opacity: 0.12;
+    transform: rotate(0deg) scale(1.08);
+  }
+
+  .stat-tile:hover .stat-icon {
+    background: var(--brand);
+    color: var(--surface);
+    transform: rotate(-8deg) scale(1.08);
+  }
+
+  .stat-tile:hover .score {
+    color: var(--brand);
+  }
+
+  /* ---- Home: the three steps ------------------------------------------ */
+
+  .step-track {
+    position: relative;
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .step-track {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    /* A dashed thread through the icons says these happen in order. */
+    .step-track::before {
+      content: "";
+      position: absolute;
+      top: 2.75rem;
+      left: 3rem;
+      right: 3rem;
+      border-top: 2px dashed var(--hairline);
+    }
+  }
+
+  .step-card {
+    position: relative;
+    padding: 1.5rem;
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    background: var(--surface);
+    overflow: hidden;
+    /* Its own layer, so the numeral can sit behind the text but above the
+       card's background. */
+    isolation: isolate;
+    transition:
+      border-color 200ms var(--ease),
+      box-shadow 260ms var(--ease),
+      translate 260ms var(--ease);
+  }
+
+  /* The step number, set huge and faint, carries the sequence. */
+  .step-numeral {
+    position: absolute;
+    top: -1.4rem;
+    right: 0.6rem;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-variation-settings: "wdth" 125;
+    font-size: 7.5rem;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--hairline);
+    z-index: -1;
+    pointer-events: none;
+    transition:
+      -webkit-text-stroke-color 260ms var(--ease),
+      translate 360ms var(--ease);
+  }
+
+  .step-card:hover {
+    border-color: var(--brand);
+    box-shadow: 4px 4px 0 var(--brand);
+    translate: -2px -2px;
+  }
+
+  .step-card:hover .step-numeral {
+    -webkit-text-stroke-color: var(--score);
+    translate: 0 4px;
+  }
+
+  .step-card:hover .stat-icon {
+    background: var(--brand);
+    color: var(--surface);
+    transform: scale(1.1);
+  }
+
+  .step-card:hover .step-icon svg {
+    animation: icon-wiggle 520ms var(--ease);
+  }
+
+  /* ---- Home: what is never stored ------------------------------------- */
+
+  .vow-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 16px;
+    background: var(--brand);
+    color: var(--surface);
+    box-shadow: 4px 4px 0 var(--score);
+    rotate: -4deg;
+  }
+
+  .never-tile {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink-muted);
+    transition:
+      border-color 200ms var(--ease),
+      background-color 200ms var(--ease),
+      translate 200ms var(--ease);
+  }
+
+  .never-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: 9px;
+    background: var(--surface-sunk);
+    color: var(--ink-muted);
+  }
+
+  .never-icon .ledger-cross {
+    position: absolute;
+    right: -0.3rem;
+    bottom: -0.3rem;
+    width: 1.05rem;
+    height: 1.05rem;
+    background: var(--low);
+    color: var(--surface);
+    border: 2px solid var(--surface);
+    transform: none;
+    transition: transform 260ms var(--ease);
+  }
+
+  /* The strike is drawn as a line, so it can be drawn again on hover. */
+  .never-text {
+    position: relative;
+  }
+
+  .never-text::after {
+    content: "";
+    position: absolute;
+    left: -2px;
+    right: -2px;
+    top: 55%;
+    height: 1.5px;
+    background: var(--low);
+    transform-origin: left;
+    transition: height 200ms var(--ease);
+  }
+
+  .never-tile:hover {
+    border-color: color-mix(in srgb, var(--low) 55%, var(--hairline));
+    background: color-mix(in srgb, var(--low) 6%, var(--surface));
+    translate: 0 -2px;
+  }
+
+  .never-tile:hover .never-text::after {
+    height: 2.5px;
+    animation: strike-draw 360ms var(--ease);
+  }
+
+  .never-tile:hover .ledger-cross {
+    transform: scale(1.2) rotate(90deg);
+  }
+
+  .never-tile:hover .never-icon {
+    animation: icon-refuse 420ms var(--ease);
+  }
+
+  .kept-card {
+    padding: 1rem 1.1rem 1.1rem;
+    border: 1px dashed color-mix(in srgb, var(--brand) 45%, var(--hairline));
+    border-radius: 12px;
+    background: var(--brand-wash);
+  }
+
+  .kept-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: var(--surface);
+    font-size: 0.875rem;
+    color: var(--ink);
+    transition:
+      border-color 180ms var(--ease),
+      translate 180ms var(--ease);
+  }
+
+  .kept-chip:hover {
+    border-color: var(--brand);
+    translate: 0 -1px;
+  }
+
   /* ---- Controls --------------------------------------------------------- */
 
   .btn {
@@ -964,6 +1259,21 @@ body {
 }
 
 /* ---- Motion ----------------------------------------------------------- */
+
+@keyframes icon-wiggle {
+  30% { rotate: -14deg; }
+  60% { rotate: 10deg; }
+}
+
+@keyframes icon-refuse {
+  20% { translate: -3px 0; }
+  45% { translate: 3px 0; }
+  70% { translate: -2px 0; }
+}
+
+@keyframes strike-draw {
+  from { transform: scaleX(0); }
+}
 
 @keyframes reveal-in {
   from {
