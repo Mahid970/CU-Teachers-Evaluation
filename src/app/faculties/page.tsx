@@ -7,7 +7,7 @@ import { DEPARTMENT_BY_SLUG, FACULTIES } from "@/lib/departments";
 import { getDepartmentSummaries } from "@/lib/db";
 
 function summaryCode(slug: string): string {
-  return DEPARTMENT_BY_SLUG[slug]?.code ?? "—";
+  return DEPARTMENT_BY_SLUG[slug]?.code ?? "";
 }
 
 export const revalidate = 300;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { ChevronDown, Search, SearchX } from "lucide-react";
 import type { TeacherListItem } from "@/lib/db";
 import { FACULTIES } from "@/lib/departments";
@@ -32,6 +32,8 @@ export function TeacherBrowser({
   showFilters = true,
   limit,
   emptyNote,
+  titles,
+  titleAction,
 }: {
   teachers: TeacherListItem[];
   initialSort?: SortKey;
@@ -39,6 +41,10 @@ export function TeacherBrowser({
   showFilters?: boolean;
   limit?: number;
   emptyNote?: string;
+  /** A heading per ordering, so the title says what the list now shows. */
+  titles?: Record<SortKey, string>;
+  /** Sits beside the title, such as a link to the full list. */
+  titleAction?: ReactNode;
 }) {
   const [sort, setSort] = useState<SortKey>(initialSort);
   const [query, setQuery] = useState("");
@@ -86,8 +92,23 @@ export function TeacherBrowser({
 
   const ranked = sort === "top" && !query && faculty === "all";
 
+  const changeSort = (next: SortKey) => {
+    setSort(next);
+    setShown(limit ?? PAGE);
+  };
+
   return (
     <div>
+      {titles && (
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+          {/* Keyed, so a new title fades in rather than swapping in place. */}
+          <h2 key={sort} className="list-title display text-3xl">
+            {titles[sort]}
+          </h2>
+          {titleAction}
+        </div>
+      )}
+
       {/* In a column this narrow the three controls cannot share a line without
           one of them wrapping awkwardly, so search takes the first row and the
           two that change the ordering take the second. */}
@@ -112,16 +133,16 @@ export function TeacherBrowser({
           </label>
         )}
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="-mx-4 flex w-[calc(100%+2rem)] items-center gap-1 overflow-x-auto px-4 sm:mx-0 sm:w-auto sm:flex-1 sm:px-0">
+        {/* Four segments need about 400px. Below that they become a select,
+            which shares a row with the faculty filter instead of scrolling
+            sideways. */}
+        <div className="flex flex-wrap items-center gap-2 min-[420px]:gap-3">
+          <div className="sort-segments hidden w-full items-center gap-1 min-[420px]:flex sm:w-auto sm:flex-1">
             {SORTS.map((s) => (
               <button
                 key={s.key}
                 type="button"
-                onClick={() => {
-                  setSort(s.key);
-                  setShown(limit ?? PAGE);
-                }}
+                onClick={() => changeSort(s.key)}
                 aria-pressed={sort === s.key}
                 className="segment"
               >
@@ -130,8 +151,23 @@ export function TeacherBrowser({
             ))}
           </div>
 
+          <label className="min-w-0 flex-1 min-[420px]:hidden">
+            <span className="sr-only">Sort teachers</span>
+            <select
+              value={sort}
+              onChange={(e) => changeSort(e.target.value as SortKey)}
+              className="field"
+            >
+              {SORTS.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
           {showFilters && (
-            <label className="w-full sm:w-auto">
+            <label className="min-w-0 flex-1 min-[420px]:w-full min-[420px]:flex-none sm:w-auto">
               <span className="sr-only">Filter by faculty</span>
               <select
                 value={faculty}

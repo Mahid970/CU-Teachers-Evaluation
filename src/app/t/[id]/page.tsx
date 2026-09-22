@@ -197,7 +197,7 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
                   <p className="prose-measure mt-2 text-sm text-ink-muted">
                     Written by verified students of this department. They are shown
                     in no particular order, without dates, and are not stored beside
-                    the scores they came with — so none of them can be traced back to
+                    the scores they came with, so none of them can be traced back to
                     a rating, or to a person.
                   </p>
                   <ul className="mt-5 space-y-3">

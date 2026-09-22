@@ -219,7 +219,7 @@ export async function POST(request: Request) {
       {
         error:
           done > chunk
-            ? "These tokens were already issued and cannot be issued twice — that is what stops double voting. Carry on with the rest, or restore a backup from the browser you used."
+            ? "These tokens were already issued and cannot be issued twice, because that is what stops double voting. Carry on with the rest, or restore a backup from the browser you used."
             : "Chunks must be requested in order.",
         alreadyIssued: done > chunk,
         nextChunk: done,

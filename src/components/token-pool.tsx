@@ -40,7 +40,7 @@ const CAPTIONS: Record<Phase, { text: string; action: string }> = {
     action: "Shuffle",
   },
   lost: {
-    text: "Gone. You cannot tell which one it was, and neither can we — there is nothing in the token that points back to you.",
+    text: "Gone. You cannot tell which one it was, and neither can we. There is nothing in the token that points back to you.",
     action: "Try again",
   },
 };

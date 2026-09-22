@@ -51,19 +51,25 @@ export default async function HomePage() {
   return (
     <>
       {/* ---- Hero: the ID decode carries the page ---------------------- */}
-      <section className="mx-auto max-w-6xl px-4 pt-14 pb-16 sm:pt-20">
+      <section className="mx-auto max-w-6xl px-4 pt-8 pb-14 sm:pt-16 lg:pt-20">
         <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-6">
-            <h1 className="display text-[clamp(2.4rem,6vw,3.8rem)]">
-              Rate the teachers who actually taught you.
-            </h1>
-            <p className="prose-measure mt-6 text-lg text-ink-muted">
-              Honest ratings, from students the university can verify — and an
-              account of you that stops existing the moment you sign in.
+            <p className="hero-pill">
+              <span className="hero-pill-dot" aria-hidden="true" />
+              For University of Chittagong students
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <h1 className="display mt-5 text-[clamp(2.25rem,9vw,3.8rem)]">
+              Rate the teachers who actually taught you.
+            </h1>
+            <p className="mt-4 text-[1.05rem] text-ink-muted sm:text-lg">
+              Sign in with your university account, rate honestly, and leave
+              nothing behind that points back to you.
+            </p>
+
+            <div className="mt-7 grid gap-2.5 min-[420px]:flex min-[420px]:flex-wrap min-[420px]:gap-3">
               <Link href="/verify" className="btn btn-primary">
+                <Star size={17} strokeWidth={2} aria-hidden="true" />
                 Rate your teachers
               </Link>
               <Link href="/teachers" className="btn btn-quiet">
@@ -103,28 +109,21 @@ export default async function HomePage() {
         {/* A row is a name and a score. Run across the full page they are
             mostly gap, so the board keeps to a column. */}
         <div className="mx-auto max-w-3xl px-4 py-16">
-          <div className="reveal flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 className="display text-3xl">Highest rated right now</h2>
-              <p className="prose-measure mt-3 text-ink-muted">
-                Scores are weighted by how many students rated, so a teacher
-                with three perfect scores does not outrank one with eighty strong
-                ones. Nobody appears until {MIN_RATINGS_TO_SHOW} students have
-                rated them.
-              </p>
-            </div>
-            <Link
-              href="/teachers"
-              className="link-grow text-sm font-semibold text-brand"
-            >
-              See all teachers
-            </Link>
-          </div>
-
-          <div className="mt-8">
+          <div>
             <TeacherBrowser
               teachers={ranked}
               limit={10}
+              titles={{
+                top: "Highest rated right now",
+                low: "Lowest rated right now",
+                most: "Most rated right now",
+                name: "Teachers from A to Z",
+              }}
+              titleAction={
+                <Link href="/teachers" className="link-grow text-sm font-semibold text-brand">
+                  See all teachers
+                </Link>
+              }
               emptyNote={`No teacher has ${MIN_RATINGS_TO_SHOW} ratings yet. The board fills up as students rate.`}
             />
           </div>

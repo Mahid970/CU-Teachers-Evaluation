@@ -52,6 +52,13 @@ addEventListener("load",function(){setTimeout(function(){
 try{sessionStorage.removeItem("cu_stale")}catch(x){}},4000)});
 `.replace(/\s*\n\s*/g, "");
 
+/**
+ * Applies a saved dark theme before anything paints. Light is the default for
+ * everyone, whatever their device prefers; dark only follows a choice made
+ * with the toggle. Running after hydration instead would flash the wrong theme.
+ */
+const APPLY_THEME = `try{if(localStorage.getItem("cu_eval_theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -66,6 +73,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${archivo.variable} ${instrumentSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-ground text-ink" suppressHydrationWarning>
+        {/* Plain scripts, not next/script: that queues inline code to run
+            after the app loads, which is too late for either of these. */}
+        <script dangerouslySetInnerHTML={{ __html: APPLY_THEME }} />
         <script dangerouslySetInnerHTML={{ __html: RECOVER_STALE_PAGE }} />
         <SiteHeader />
         <main className="flex-1">{children}</main>

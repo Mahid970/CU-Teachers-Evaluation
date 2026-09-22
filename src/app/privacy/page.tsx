@@ -17,7 +17,7 @@ export default function PrivacyPage() {
       <p className="mt-5 text-lg text-ink-muted">
         A student who rates a teacher honestly should never face consequences for it.
         The site is built so that a leak, a subpoena or a dishonest administrator
-        still could not reveal who gave which rating — because that link is never
+        still could not reveal who gave which rating, because that link is never
         created in the first place.
       </p>
 
@@ -58,7 +58,7 @@ export default function PrivacyPage() {
           },
           {
             title: "You rate without signing in",
-            body: "A rating arrives carrying only its token. It proves you were entitled to rate that teacher, and nothing else. We cannot connect it to the sign-in that produced it — the mathematics does not allow it, and neither does our database.",
+            body: "A rating arrives carrying only its token. It proves you were entitled to rate that teacher, and nothing else. We cannot connect it to the sign-in that produced it. The mathematics does not allow it, and neither does our database.",
           },
         ].map((step, i) => (
           <li key={step.title} className="panel p-5">
@@ -111,7 +111,7 @@ export default function PrivacyPage() {
         <li>
           <strong className="text-ink">A weak passphrase.</strong> Your encrypted
           tokens are protected by the words you chose. We make each guess expensive
-          and a leaked database alone cannot be attacked at all — but a passphrase
+          and a leaked database alone cannot be attacked at all. Even so, a passphrase
           someone could guess is worth less than one they could not. Before the
           vault existed, this link did not exist in any form; now it exists as
           ciphertext, and that is a real change we would rather state than bury.
@@ -144,7 +144,7 @@ export default function PrivacyPage() {
       <p className="prose-measure mt-4 text-ink-muted">
         Signing in with your email alone could never do this. If we could hand
         your tokens back on proof of your address, we would be holding your
-        tokens — and your tokens are what your ratings are filed under. One join
+        tokens, and your tokens are what your ratings are filed under. One join
         and we would know what you said. The passphrase is the part we never see,
         and it is what keeps that join impossible.
       </p>
@@ -178,7 +178,7 @@ export default function PrivacyPage() {
         Three things blunt that. Reviews are short by design. None appear until{" "}
         {MIN_REVIEWS_TO_SHOW} students have written one, so a review is never the
         only one on a page. And a review is never stored beside the scores it
-        came with — it arrives in a separate request, is filed under a different
+        came with. It arrives in a separate request, is filed under a different
         value, and sits in a table that shares no key with the ratings. Nobody
         reading our database, including us, can put a sentence next to the number
         it arrived with.

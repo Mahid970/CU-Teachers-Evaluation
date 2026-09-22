@@ -164,7 +164,7 @@ export function VerifyFlow({
       const restored = await loadVault(keys);
       if (!restored) {
         setVaultError(
-          "Nothing opened with that passphrase. Check it and try again — and if you never set one up, your tokens are still in the browser you first used.",
+          "Nothing opened with that passphrase. Check it and try again. If you never set one up, your tokens are still in the browser you first used.",
         );
         return;
       }
@@ -289,7 +289,7 @@ export function VerifyFlow({
               {progress.total > 0 && (
                 <span className="numerals text-ink-muted">
                   {" "}
-                  — {progress.done} of {progress.total}
+                  ({progress.done} of {progress.total})
                 </span>
               )}
             </p>
@@ -342,7 +342,7 @@ export function VerifyFlow({
           <p className="display text-2xl">Use these on your other devices</p>
           <p className="prose-measure mt-2 text-sm text-ink-muted">
             Choose a passphrase and your browser will encrypt your tokens with it
-            before uploading them. We store the result and cannot read it — signing
+            before uploading them. We store the result and cannot read it. Signing
             in on a laptop later and typing the same words is what gets them back.
           </p>
 
@@ -361,7 +361,7 @@ export function VerifyFlow({
             className="mt-4 text-sm text-ink-muted underline underline-offset-2 hover:text-ink"
             onClick={() => setStage("done")}
           >
-            Skip — this is the only device I will use
+            Skip, I will only use this device
           </button>
         </div>
       )}
@@ -373,7 +373,7 @@ export function VerifyFlow({
             You have already collected your tokens this term
           </p>
           <p className="prose-measure mt-2 text-sm text-ink-muted">
-            They cannot be issued twice — that is what stops anyone rating a teacher
+            They cannot be issued twice, because that is what stops anyone rating a teacher
             more than once. If you set a passphrase, type it and your tokens will come
             back on this device.
           </p>

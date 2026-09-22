@@ -20,7 +20,7 @@ function strengthOf(value: string): { score: 0 | 1 | 2 | 3; label: string } {
   if (value.length < MIN_LENGTH) return { score: 0, label: "Too short" };
   if (value.length >= 20 || words >= 4) return { score: 3, label: "Strong" };
   if (value.length >= 16 || classes >= 3) return { score: 2, label: "Good" };
-  return { score: 1, label: "Weak — add another word" };
+  return { score: 1, label: "Weak, add another word" };
 }
 
 export function PassphraseForm({

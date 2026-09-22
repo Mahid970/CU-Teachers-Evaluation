@@ -4,8 +4,10 @@ import { SiteMark } from "./site-mark";
 export function SiteFooter() {
   return (
     <footer className="mt-20 border-t border-hairline">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="lg:col-span-2">
+      {/* The mark and its line take the full width on a phone; the two lists
+          share the row beneath it. From laptops up all three sit in a line. */}
+      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-10 px-4 py-12 sm:py-14 lg:grid-cols-4">
+        <div className="col-span-2">
           <SiteMark className="site-mark-lg" />
           <p className="prose-measure mt-4 text-sm text-ink-muted">
             Anonymous teacher ratings by verified University of Chittagong
@@ -34,23 +36,6 @@ export function SiteFooter() {
         </nav>
       </div>
 
-      <div className="border-t border-hairline">
-        <p className="prose-measure mx-auto max-w-6xl px-4 py-5 text-xs text-ink-muted">
-          A student project, not an official website of the University of
-          Chittagong, and not endorsed by it. The university crest and the
-          teacher names and photographs come from the public pages of cu.ac.bd.
-          The campus map is drawn from{" "}
-          <a
-            href="https://www.openstreetmap.org/copyright"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="link-grow hover:text-brand"
-          >
-            OpenStreetMap
-          </a>{" "}
-          data, © OpenStreetMap contributors.
-        </p>
-      </div>
     </footer>
   );
 }

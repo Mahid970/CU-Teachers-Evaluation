@@ -23,7 +23,7 @@ export default function CorrectionsPage() {
           Remove your page entirely on request, and stop accepting ratings for you.
         </li>
         <li>
-          Remove ratings that break the guidelines — for example ratings clearly aimed
+          Remove ratings that break the guidelines, for example ratings clearly aimed
           at your religion, gender or personal life rather than your teaching.
         </li>
       </ul>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { IdDecode } from "@/components/id-decode";
 import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
 
 export const metadata: Metadata = {
@@ -10,6 +11,14 @@ export default function GuidelinesPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
       <h1 className="display text-4xl">Rating fairly</h1>
+
+      <h2 className="display mt-12 text-3xl">Who you can rate</h2>
+      <p className="mt-4 text-ink-muted">
+        You never pick your department. It is read from your student ID when you
+        sign in, and you are shown the teachers of that department only. The first
+        five digits are all it takes.
+      </p>
+      <IdDecode className="mt-6" />
 
       <h2 className="display mt-12 text-3xl">Before you rate</h2>
       <ul className="mt-4 space-y-3 text-ink-muted">

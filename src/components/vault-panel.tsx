@@ -89,7 +89,7 @@ export function VaultPanel({ bundle }: { bundle: TokenBundle }) {
       <p className="prose-measure mt-4 text-xs text-ink-muted">
         To use these tokens on another device, sign in again from this browser.
         Deriving a vault key needs your student ID, and this browser does not
-        have it — it is read from the sign-in and never asked for.
+        have it. It is read from the sign-in and never asked for.
       </p>
     );
   }
@@ -103,7 +103,7 @@ export function VaultPanel({ bundle }: { bundle: TokenBundle }) {
         </p>
         <p className="prose-measure mt-2 text-sm text-ink-muted">
           Set a passphrase and your browser will encrypt these tokens before
-          uploading them. We store the result and cannot read it — typing the same
+          uploading them. We store the result and cannot read it. Typing the same
           words after signing in elsewhere is what brings them back.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">

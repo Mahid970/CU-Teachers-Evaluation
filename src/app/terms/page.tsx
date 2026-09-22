@@ -16,7 +16,18 @@ export default function TermsPage() {
         An independent project run by students of the University of Chittagong. It is
         not an official university website, and it is not affiliated with or endorsed
         by the university. Ratings are the opinions of individual students, not
-        statements of fact, and carry no official weight.
+        statements of fact, and carry no official weight. The university crest and the
+        teacher names and photographs come from the public pages of cu.ac.bd. The
+        campus map is drawn from{" "}
+        <a
+          href="https://www.openstreetmap.org/copyright"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-brand hover:underline"
+        >
+          OpenStreetMap
+        </a>{" "}
+        data, © OpenStreetMap contributors.
       </p>
 
       <h2 className="display mt-12 text-3xl">Who may rate</h2>
@@ -34,7 +45,7 @@ export default function TermsPage() {
         <Link href="/guidelines" className="text-brand hover:underline">
           guidelines
         </Link>
-        , and we correct or remove teacher details on request — see{" "}
+        , and we correct or remove teacher details on request. See{" "}
         <Link href="/corrections" className="text-brand hover:underline">
           corrections and removal
         </Link>

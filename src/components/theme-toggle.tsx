@@ -10,9 +10,10 @@ type Theme = "light" | "dark";
  * Theme preference lives in localStorage on the reader's own device. It is a
  * per-device convenience and is never sent anywhere.
  *
- * Which icon shows is decided in CSS rather than in JavaScript: the server
- * cannot know the visitor's system theme, so rendering the icon from a guess
- * would produce a hydration mismatch on every dark-mode visit.
+ * The site is light unless the reader has chosen dark here; the device's own
+ * setting is deliberately ignored. The choice is applied before first paint by
+ * a script in the layout, so this only has to follow later changes. Which icon
+ * shows is decided in CSS, so server and client always render the same markup.
  */
 export function ThemeToggle() {
   const stored = useStoredValue("cu_eval_theme") as Theme | null;
@@ -24,10 +25,7 @@ export function ThemeToggle() {
 
   const toggle = () => {
     const root = document.documentElement;
-    const isDark =
-      root.dataset.theme === "dark" ||
-      (!root.dataset.theme && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    const next: Theme = isDark ? "light" : "dark";
+    const next: Theme = root.dataset.theme === "dark" ? "light" : "dark";
     root.dataset.theme = next;
     try {
       localStorage.setItem("cu_eval_theme", next);

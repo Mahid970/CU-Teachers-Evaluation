@@ -13,7 +13,7 @@ export default function MePage() {
       <h1 className="display text-4xl">My ratings</h1>
       <p className="mt-4 max-w-xl text-ink-muted">
         This page is built from what is stored in your browser. None of it can be
-        read by our server — if you set a passphrase, your other devices get it by
+        read by our server. If you set a passphrase, your other devices get it by
         decrypting a copy we cannot open.
       </p>
 

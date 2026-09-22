@@ -52,28 +52,6 @@
   --road: #4c564f;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --ground: #0e1210;
-    --surface: #161c19;
-    --surface-sunk: #0a0e0c;
-    --ink: #e8ebe7;
-    --ink-muted: #949d97;
-    --hairline: #262e29;
-    --brand: #5fbf9b;
-    --brand-hover: #7ed3b2;
-    --brand-wash: #17251f;
-    --score: #e0a84a;
-    --score-track: #2a2b25;
-    --low: #d4785f;
-    --token: #232c27;
-    --campus: #1b231f;
-    --water: #26473d;
-    --building: #39433d;
-    --road: #4c564f;
-  }
-}
-
 @theme inline {
   --color-ground: var(--ground);
   --color-surface: var(--surface);
@@ -209,31 +187,49 @@ body {
     padding: 0.85rem 1rem;
   }
 
-  /* A place on the board, not just a number in the margin. */
+  /* The place is just a numeral. The top three get a short amber rule under
+     it: enough to mark the podium without painting a tile behind every row. */
   .rank-badge {
+    position: relative;
     display: inline-flex;
-    align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
+    width: 1.5rem;
     flex-shrink: 0;
-    border-radius: 8px;
-    background: var(--surface-sunk);
+    padding-bottom: 0.3rem;
     color: var(--ink-muted);
     font-family: var(--font-display);
     font-weight: 700;
     font-variation-settings: "wdth" 112;
     font-variant-numeric: tabular-nums;
-    font-size: 0.9rem;
+    font-size: 1.05rem;
+    line-height: 1;
     letter-spacing: -0.02em;
-    transition:
-      background-color 160ms var(--ease),
-      color 160ms var(--ease);
+    transition: color 160ms var(--ease);
   }
 
   .rank-badge[data-lead="true"] {
+    color: var(--ink);
+  }
+
+  .rank-badge[data-lead="true"]::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 0.9rem;
+    height: 2px;
+    border-radius: 2px;
     background: var(--score);
-    color: #1b1400;
+    translate: -50% 0;
+    transition: width 220ms var(--ease);
+  }
+
+  .row-link:hover .rank-badge {
+    color: var(--brand);
+  }
+
+  .row-link:hover .rank-badge[data-lead="true"]::after {
+    width: 1.3rem;
   }
 
   .teacher-name {
@@ -669,9 +665,269 @@ body {
     translate: 0 -1px;
   }
 
+  /* ---- Phone menu ------------------------------------------------------- */
+
+  .menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    margin-left: 0.25rem;
+    border-radius: 8px;
+    color: var(--ink);
+    transition: background-color 160ms var(--ease);
+  }
+
+  .menu-toggle:hover,
+  .menu-toggle[aria-expanded="true"] {
+    background: var(--surface-sunk);
+  }
+
+  /* Three bars that fold into a cross. */
+  .menu-toggle-lines {
+    position: relative;
+    display: block;
+    width: 1.15rem;
+    height: 0.8rem;
+  }
+
+  .menu-toggle-lines > span {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition:
+      top 200ms var(--ease) 120ms,
+      rotate 200ms var(--ease),
+      opacity 120ms var(--ease) 120ms,
+      width 200ms var(--ease);
+  }
+
+  .menu-toggle-lines > span:nth-child(1) { top: 0; }
+  .menu-toggle-lines > span:nth-child(2) { top: calc(50% - 1px); width: 70%; }
+  .menu-toggle-lines > span:nth-child(3) { top: calc(100% - 2px); }
+
+  .menu-toggle[aria-expanded="true"] .menu-toggle-lines > span {
+    top: calc(50% - 1px);
+    transition:
+      top 200ms var(--ease),
+      rotate 200ms var(--ease) 160ms,
+      opacity 120ms var(--ease);
+  }
+
+  .menu-toggle[aria-expanded="true"] .menu-toggle-lines > span:nth-child(1) { rotate: 45deg; }
+  .menu-toggle[aria-expanded="true"] .menu-toggle-lines > span:nth-child(2) { opacity: 0; }
+  .menu-toggle[aria-expanded="true"] .menu-toggle-lines > span:nth-child(3) { rotate: -45deg; }
+
+  /* The sheet opens from under the bar; its height animates through a grid
+     row, so it needs no measured height. */
+  .menu-sheet {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    display: grid;
+    grid-template-rows: 0fr;
+    background: var(--ground);
+    border-bottom: 1px solid transparent;
+    visibility: hidden;
+    transition:
+      grid-template-rows 280ms var(--ease),
+      border-color 280ms var(--ease),
+      visibility 0s linear 280ms;
+  }
+
+  .menu-sheet[data-open="true"] {
+    grid-template-rows: 1fr;
+    border-color: var(--hairline);
+    visibility: visible;
+    transition:
+      grid-template-rows 280ms var(--ease),
+      border-color 280ms var(--ease);
+  }
+
+  .menu-sheet-inner {
+    overflow: hidden;
+  }
+
+  .menu-sheet li + li {
+    border-top: 1px solid var(--hairline);
+  }
+
+  .menu-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.95rem 0.25rem;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    font-variation-settings: "wdth" 108;
+    letter-spacing: -0.02em;
+    color: var(--ink-muted);
+    opacity: 0;
+    translate: 0 -6px;
+    transition:
+      color 160ms var(--ease),
+      opacity 220ms var(--ease),
+      translate 260ms var(--ease);
+  }
+
+  .menu-sheet[data-open="true"] .menu-link {
+    opacity: 1;
+    translate: 0 0;
+    transition-delay: calc(60ms + var(--i) * 40ms);
+  }
+
+  .menu-link:hover,
+  .menu-link[data-active="true"] {
+    color: var(--ink);
+  }
+
+  /* The page you are on is marked with the same amber rule as the podium. */
+  .menu-link[data-active="true"]::after {
+    content: "";
+    width: 1.1rem;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--score);
+  }
+
+  .menu-scrim {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    height: 100vh;
+    background: color-mix(in srgb, var(--ink) 30%, transparent);
+    animation: scrim-in 280ms var(--ease);
+  }
+
+  /* ---- Hero ------------------------------------------------------------- */
+
+  .hero-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.8rem 0.35rem 0.6rem;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: var(--surface);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink-muted);
+  }
+
+  .hero-pill-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-wash);
+  }
+
+  /* An ID read in pieces: the one moment on the page that moves by itself. */
+  .id-card {
+    padding: 1rem;
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    background: var(--surface);
+  }
+
+  .id-digits {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .id-part {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 0.55rem 0.4rem 0.5rem;
+    border-radius: 9px;
+    background: var(--surface-sunk);
+    border-top: 3px solid var(--brand);
+  }
+
+  .id-part:last-child {
+    border-top-color: var(--hairline);
+  }
+
+  .id-digit {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-variation-settings: "wdth" 118;
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(1.35rem, 6.5vw, 1.75rem);
+    line-height: 1;
+    letter-spacing: 0.02em;
+  }
+
+  .id-part:last-child .id-digit {
+    color: var(--ink-muted);
+  }
+
+  .id-label {
+    margin-top: 0.5rem;
+    font-size: 0.68rem;
+    color: var(--ink-muted);
+  }
+
+  .id-value {
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  @media (min-width: 420px) {
+    .id-card {
+      padding: 1.1rem 1.2rem 1.2rem;
+    }
+
+    .id-digits {
+      gap: 0.55rem;
+    }
+
+    .id-part {
+      padding: 0.75rem 0.75rem 0.7rem;
+    }
+
+    .id-label {
+      font-size: 0.75rem;
+    }
+
+    .id-value {
+      font-size: 0.875rem;
+    }
+  }
+
+  /* ---- Lists ------------------------------------------------------------ */
+
+  .list-title {
+    animation: title-swap 320ms var(--ease);
+  }
+
+  .sort-segments {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
   /* ---- Controls --------------------------------------------------------- */
 
+  /* Buttons behave like a rubber stamp. Pointing at one lifts it off a hard
+     shadow and draws a single band of light across its face; pressing sets it
+     back down flat. The shadow is solid, never blurred, like the cards. */
   .btn {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -682,10 +938,56 @@ body {
     border-radius: 8px;
     border: 1px solid transparent;
     min-height: 46px;
+    --lift: var(--score);
     transition:
-      background-color 140ms var(--ease),
-      border-color 140ms var(--ease),
-      color 140ms var(--ease);
+      background-color 180ms var(--ease),
+      border-color 180ms var(--ease),
+      color 180ms var(--ease),
+      box-shadow 220ms var(--ease),
+      translate 220ms var(--ease);
+  }
+
+  .btn::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      color-mix(in srgb, #fff 26%, transparent) 50%,
+      transparent 70%
+    );
+    translate: -110% 0;
+    pointer-events: none;
+  }
+
+  .btn > svg {
+    transition: translate 260ms var(--ease), rotate 260ms var(--ease);
+  }
+
+  .btn:hover:not(:disabled) {
+    translate: -2px -2px;
+    box-shadow: 3px 3px 0 var(--lift);
+  }
+
+  .btn:hover:not(:disabled)::before {
+    translate: 110% 0;
+    transition: translate 620ms var(--ease);
+  }
+
+  .btn:hover:not(:disabled) > svg:first-child {
+    rotate: -12deg;
+  }
+
+  .btn:hover:not(:disabled) > svg:last-child:not(:first-child) {
+    translate: 3px 0;
+  }
+
+  .btn:active:not(:disabled) {
+    translate: 1px 1px;
+    box-shadow: 0 0 0 var(--lift);
+    transition-duration: 80ms;
   }
 
   .btn-primary {
@@ -702,36 +1004,53 @@ body {
     color: #0e1210;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .btn-primary,
-    :root:not([data-theme="light"]) .btn-primary:hover {
-      color: #0e1210;
-    }
-  }
-
   .btn-quiet {
+    --lift: var(--brand);
     border-color: var(--hairline);
     background: var(--surface);
     color: var(--ink);
   }
 
-  .btn-quiet:hover {
-    border-color: var(--ink);
+  .btn-quiet::before {
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      color-mix(in srgb, var(--brand) 12%, transparent) 50%,
+      transparent 70%
+    );
   }
 
+  .btn-quiet:hover {
+    border-color: var(--brand);
+  }
+
+  /* Small buttons sit in the bar, where a big lift would crowd the edge. */
   .btn-compact {
     min-height: 0;
     padding: 0.5rem 0.9rem;
     font-size: 0.875rem;
   }
 
-  .btn:active {
-    transform: translateY(1px);
+  .btn-compact:hover:not(:disabled) {
+    translate: -1px -1px;
+    box-shadow: 2px 2px 0 var(--lift);
   }
 
   .btn:disabled {
     opacity: 0.45;
-    transform: none;
+  }
+
+  /* Touch screens have no hover, only a sticky one after a tap. */
+  @media (hover: none) {
+    .btn:hover:not(:disabled) {
+      translate: none;
+      box-shadow: none;
+    }
+
+    .btn:hover:not(:disabled)::before {
+      translate: -110% 0;
+      transition: none;
+    }
   }
 
   /* Underline grows from the left rather than blinking on. */
@@ -1008,15 +1327,6 @@ body {
     display: block;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .theme-toggle .icon-to-dark {
-      display: none;
-    }
-    :root:not([data-theme="light"]) .theme-toggle .icon-to-light {
-      display: block;
-    }
-  }
-
   /* One shared star shape, masked twice: a grey track and a filled overlay.
      Cheap enough to repeat on a page listing every teacher. */
   .stars {
@@ -1275,6 +1585,19 @@ body {
   from { transform: scaleX(0); }
 }
 
+@keyframes scrim-in {
+  from { opacity: 0; }
+}
+
+@keyframes title-swap {
+  from { opacity: 0; translate: 0 6px; }
+}
+
+@keyframes id-read {
+  0%, 100% { background: var(--surface-sunk); }
+  35% { background: var(--brand-wash); }
+}
+
 @keyframes reveal-in {
   from {
     opacity: 0;
@@ -1420,6 +1743,11 @@ body {
   /* The route is finished; wipe it and set off again. */
   .campus-tour[data-clearing="true"] {
     animation: tour-clear 640ms var(--ease) forwards;
+  }
+
+  .id-part {
+    animation: id-read 900ms var(--ease) both;
+    animation-delay: calc(500ms + var(--i) * 260ms);
   }
 
   /* Answers a click: the list re-orders, so it says so. */
