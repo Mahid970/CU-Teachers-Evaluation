@@ -1,12 +1,16 @@
 /**
- * Generates one blind-signing key pair per teacher for a term.
+ * Generates a blind-signing key pair for every active teacher who lacks one.
  *
- *   npm run keys:gen -- --term 2026-1 --label "Spring 2026"
+ *   npm run keys:gen -- --term 2026-1            # local
  *   npm run keys:gen -- --term 2026-1 --remote
  *
+ * Existing keys are never touched. Ratings are permanent, so students hold
+ * tokens signed with today's keys indefinitely: replacing a key would silently
+ * invalidate every one of them. That makes this safe to re-run after new
+ * teachers are added (see teachers:sync), which is exactly when it is needed.
+ *
  * The public half goes to D1 in the clear; the private half is wrapped with
- * MASTER_KEY before it is stored, and should be destroyed when the term closes
- * (scripts/close-term.ts).
+ * MASTER_KEY before it is stored.
  */
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, writeFileSync } from "node:fs";
@@ -25,10 +29,10 @@ const term = flag("term");
 const label: string = flag("label") ?? term ?? "";
 const remote = args.includes("--remote");
 const opensAt = flag("opens") ?? new Date().toISOString().slice(0, 10);
-const closesAt = flag("closes") ?? `${new Date().getFullYear()}-12-31`;
+const closesAt = flag("closes") ?? "9999-12-31";
 
 if (!term) {
-  console.error('Usage: npm run keys:gen -- --term 2026-1 [--label "Spring 2026"] [--remote]');
+  console.error("Usage: npm run keys:gen -- --term 2026-1 [--remote]");
   process.exit(1);
 }
 const termId: string = term;
@@ -74,7 +78,10 @@ const idsRaw = execFileSync(
     remote ? "--remote" : "--local",
     "--json",
     "--command",
-    "SELECT id FROM teachers WHERE active = 1",
+    `SELECT t.id FROM teachers t
+     WHERE t.active = 1
+       AND NOT EXISTS (SELECT 1 FROM teacher_term_keys k
+                       WHERE k.teacher_id = t.id AND k.term_id = '${termId.replace(/'/g, "''")}')`,
   ],
   { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
 );
@@ -82,18 +89,22 @@ const teacherIds: string[] = JSON.parse(idsRaw)[0].results.map((r: { id: string 
 
 const q = (v: string) => `'${v.replace(/'/g, "''")}'`;
 const lines = [
-  `INSERT OR REPLACE INTO terms (id, label, opens_at, closes_at, is_open) VALUES (${q(termId)}, ${q(label)}, ${q(opensAt)}, ${q(closesAt)}, 1);`,
-  `DELETE FROM teacher_term_keys WHERE term_id = ${q(termId)};`,
+  // Creates the term the first time; an existing one is left exactly as it is.
+  `INSERT OR IGNORE INTO terms (id, label, opens_at, closes_at, is_open) VALUES (${q(termId)}, ${q(label)}, ${q(opensAt)}, ${q(closesAt)}, 1);`,
 ];
 
 async function main() {
+if (teacherIds.length === 0) {
+  console.log("Every active teacher already has a key. Nothing to do.");
+  return;
+}
 let done = 0;
 for (const teacherId of teacherIds) {
   const pair = await crypto.subtle.generateKey(KEY_ALGORITHM, true, ["sign", "verify"]);
   const publicJwk = await crypto.subtle.exportKey("jwk", pair.publicKey);
   const privateJwk = await crypto.subtle.exportKey("jwk", pair.privateKey);
   lines.push(
-    `INSERT INTO teacher_term_keys (teacher_id, term_id, public_key, private_key_wrapped) VALUES (${q(teacherId)}, ${q(termId)}, ${q(JSON.stringify(publicJwk))}, ${q(await wrap(privateJwk))});`,
+    `INSERT OR IGNORE INTO teacher_term_keys (teacher_id, term_id, public_key, private_key_wrapped) VALUES (${q(teacherId)}, ${q(termId)}, ${q(JSON.stringify(publicJwk))}, ${q(await wrap(privateJwk))});`,
   );
   done += 1;
   if (done % 200 === 0) console.log(`  ${done}/${teacherIds.length} keys`);
@@ -116,8 +127,7 @@ execFileSync(
   { stdio: "inherit" },
 );
 
-console.log(`\nGenerated ${done} key pairs for term ${termId} (${remote ? "remote" : "local"}).`);
-console.log("Remember: close the term to destroy the private keys.");
+console.log(`\nGenerated ${done} new key pairs for term ${termId} (${remote ? "remote" : "local"}).`);
 }
 
 main().catch((error) => {

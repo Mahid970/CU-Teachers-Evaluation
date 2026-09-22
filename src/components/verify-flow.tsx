@@ -16,6 +16,7 @@ import {
   emailHint,
   loadBundle,
   rememberEmailHint,
+  topUpTokens,
   rememberStudentId,
 } from "@/lib/tokens-client";
 import {
@@ -35,6 +36,8 @@ type IssueData = {
   session: string;
   department: { slug: string; name: string };
   teachers: IssuableTeacher[];
+  /** Teachers who joined after this student first collected. */
+  addedTeachers?: IssuableTeacher[];
   chunkSize?: number;
 };
 
@@ -83,8 +86,12 @@ export function VerifyFlow({
   // the server for it would put a student ID and a vault lookup in the same
   // conversation, which is the one thing the vault design avoids.
   const studentId = useRef("");
+  // Kept for this page only, so a restore can go on to collect tokens for
+  // teachers added since. Google's token expires within the hour anyway.
+  const signIn = useRef<{ token: string; deptChoice?: string } | null>(null);
 
   async function verify(token: string, deptChoice?: string) {
+    signIn.current = { token, deptChoice };
     setStage("working");
     setMessage("");
     setIdToken(token);
@@ -119,9 +126,12 @@ export function VerifyFlow({
       const data = payload as IssueData;
       termId = data.term.id;
       setProgress({ done: 0, total: data.teachers.length });
-      const issued = await collectTokens(token, deptChoice, data, (done, total) =>
+      let issued = await collectTokens(token, deptChoice, data, (done, total) =>
         setProgress({ done, total }),
       );
+      if (data.addedTeachers && data.addedTeachers.length > 0) {
+        issued = await topUpTokens(token, deptChoice, issued, data.addedTeachers);
+      }
       rememberStudentId(studentId.current);
       setBundle(issued);
       setStage("setup");
@@ -183,10 +193,17 @@ export function VerifyFlow({
       }
       adoptRestored(restored, keys);
       rememberStudentId(studentId.current);
+      // Teachers who joined since the vault was made are collected now, into
+      // the restored set. A failure here must not undo the restore.
+      const current = signIn.current
+        ? await topUpTokens(signIn.current.token, signIn.current.deptChoice, restored).catch(
+            () => restored,
+          )
+        : restored;
       // Written back straight away, so the vault changes on every sign-in and
       // not only when somebody rates.
-      void saveVault(keys, restored);
-      setBundle(restored);
+      void saveVault(keys, current);
+      setBundle(current);
       setVaultSaved(true);
       setStage("done");
     } catch (error) {

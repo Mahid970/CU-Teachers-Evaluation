@@ -18,11 +18,14 @@ rating is never created.
    seconds while the department is worked out.
 2. **Blind signatures (RFC 9474).** The browser makes one random secret per
    teacher and blinds it. The server signs values it cannot see, using a key
-   that belongs to *one teacher for one term*. A token for teacher A therefore
+   that belongs to *one teacher*. A token for teacher A therefore
    fails for teacher B, and the server cannot recognise a finished token.
-3. **One recorded fact.** `issuances` holds `HMAC(term pepper, student id)` —
-   "this student already collected their tokens". Rotating the pepper at the end
-   of term makes those rows unreadable forever.
+3. **One recorded fact.** `issuances` holds `HMAC(pepper, student id)`, meaning
+   "this student already collected their tokens", with two counters: how far
+   through their department's list they have been served, and the sequence
+   number of the newest teacher their tokens cover. No teacher is ever recorded
+   against a student. A teacher who joins later gets the next sequence number,
+   and signing in again tops up everything above the student's watermark.
 4. **Rating.** Submitted with no cookie and no sign-in, carrying only the token.
    Stored keyed by the token's hash, with the **date only**.
 5. **Written reviews.** Carried by the same token but filed under a *different*
@@ -44,16 +47,18 @@ tokens for a department takes ~60 ms there, against ~9 s on a plain Node dev
 server, where the library falls back to big-number arithmetic in JavaScript.
 That difference is only ever felt in local development.
 
-Supporting measures: public numbers rebuild once a day; a teacher's scores stay
-hidden below five ratings; the browser waits a random moment before sending;
-platform logs are off; there are no analytics and no cookies.
+Supporting measures: public numbers rebuild once a day; the browser waits a
+random moment before sending; platform logs are off; there are no analytics and
+no cookies. Scores show from a teacher's first rating (the owner's decision), so
+with one or two ratings a teacher may be able to guess who rated them. The
+privacy page says so.
 
 | Table | What it holds | Can it identify a student? |
 |---|---|---|
 | `teachers`, `departments`, `faculties` | public data from cu.ac.bd | no |
 | `teacher_term_keys` | per-teacher signing keys | no |
-| `issuances` | HMAC of a student ID, date | only until the pepper is rotated |
-| `ratings` | token hash, scores, tags, date | no |
+| `issuances` | HMAC of a student ID, date, two counters | only with the pepper, and only that they collected tokens |
+| `ratings` | token hash, scores, date | no |
 | `reviews` | review hash, body, date | no — and no key in common with `ratings` |
 | `vaults` | peppered lookup, doubly-encrypted bundle | not without the student's passphrase |
 | `teacher_stats` | daily aggregates | no |
@@ -118,7 +123,8 @@ never enabled in production.
 | `npm run audit:privacy` | fails if anything identifying is in the database |
 | `npm run seed` | regenerate `migrations/0002_seed.sql` from `data/cu_teachers.json` |
 | `npm run db:local` / `db:remote` | apply migrations |
-| `npm run keys:gen -- --term <id>` | one signing key pair per teacher for a term |
+| `npm run teachers:sync` | add new teachers from `data/cu_teachers.json`, safely (report only without `--apply`) |
+| `npm run keys:gen -- --term <id>` | a signing key for every teacher who lacks one; never replaces a key |
 | `npm run stats:build` | rebuild aggregates (the cron does this daily) |
 | `npm run cf:preview` / `cf:deploy` | build and run/deploy on Cloudflare Workers |
 
@@ -158,8 +164,27 @@ and can change that rating at any time. Keep it that way:
 - **Never rotate `TERM_PEPPER`.** It is what recognises a student who already
   collected tokens. A new pepper would let every student collect a second set
   and rate everyone twice.
-- **Never re-run `keys:gen` for `2026-1`.** New keys would invalidate every
-  token students already hold.
+- **Never replace a teacher's key.** Students hold tokens signed with it for
+  good. `keys:gen` only ever adds keys for teachers who have none, so it is
+  safe to run again; do not delete rows from `teacher_term_keys` by hand.
+- **Never re-run `npm run seed` against production.** It deletes and
+  re-inserts every teacher. Use `teachers:sync` instead.
+
+### Adding teachers
+
+After refreshing `data/cu_teachers.json`:
+
+```bash
+npm run teachers:sync -- --remote            # see what would change
+npm run teachers:sync -- --remote --apply    # add new, update details, retire missing
+npm run keys:gen -- --term 2026-1 --remote   # keys for the new teachers only
+```
+
+New teachers are added at the end of their department with the next sequence
+number. Students who collected earlier get their tokens the next time they sign
+in (or restore their vault on a new device); students collecting for the first
+time get them with everyone else. Teachers missing from the source are marked
+inactive, never deleted, because ratings point at them.
 
 ---
 
@@ -192,7 +217,7 @@ Motion is 150–400 ms on one easing curve, and everything is disabled under
 `prefers-reduced-motion`.
 
 Rankings use a Bayesian average (`src/lib/rating.ts`), so three perfect scores
-do not outrank eighty strong ones, and teachers below five ratings are left out
+do not outrank eighty strong ones, and teachers with no ratings are left out
 of rankings rather than shown as "worst".
 
 ---

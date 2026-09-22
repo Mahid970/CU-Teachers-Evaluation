@@ -16,6 +16,7 @@
     "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "keys:gen": "tsx scripts/gen-term-keys.ts",
+    "teachers:sync": "tsx scripts/sync-teachers.ts",
     "stats:build": "tsx scripts/build-stats.ts",
     "dev:sample": "tsx scripts/dev-sample-ratings.ts",
     "audit:privacy": "node scripts/privacy-audit.mjs",

@@ -8,7 +8,8 @@
  *   1. a student gets one token per teacher of their department
  *   2. a rating carried by a token is accepted, and re-sending edits it
  *   3. a token issued for teacher A is rejected for teacher B
- *   4. the same student cannot collect a second set of tokens
+ *   4. the same student cannot collect a second set of tokens, nor two
+ *      tokens for one teacher in a single request
  *   5. nothing identifying the student is written to the database
  */
 import { RSABSSA } from "@cloudflare/blindrsa-ts";
@@ -151,6 +152,25 @@ const repeat = await post("/api/issue", {
 });
 check("the same student cannot collect a second set", repeat.status === 409,
   `status ${repeat.status}`);
+
+// Naming one teacher twice (and leaving another out) must fail outright. A
+// length check alone would sign both, which is two votes for one teacher.
+const firstChunk = teachers.slice(0, chunkSize);
+const doubled = await Promise.all(
+  [firstChunk[0], firstChunk[0], ...firstChunk.slice(1, chunkSize - 1)].map(blindFor),
+);
+const doubledRes = await post("/api/issue", {
+  idToken: `dev:${STUDENT}`,
+  chunk: 0,
+  blinded: doubled.map((r) => ({ teacherId: r.teacherId, blinded: b64(r.blinded) })),
+});
+check("a chunk naming one teacher twice is refused", doubledRes.status === 400,
+  `status ${doubledRes.status}`);
+
+// Nobody new has joined, so there is nothing to top up.
+const noTopUp = await post("/api/issue", { idToken: `dev:${STUDENT}`, topUp: true, blinded: [] });
+check("a top-up with no new teachers is refused", noTopUp.status === 409,
+  `status ${noTopUp.status}`);
 
 // ---- 5. Written reviews -------------------------------------------------
 const review = (token, teacherId, body) =>

@@ -176,7 +176,9 @@ export async function collectTokens(
   const chunkSize = data.chunkSize ?? 4;
   const total = data.teachers.length;
 
-  const bundle: TokenBundle = {
+  // Carries on from whatever this browser already holds. Starting blank would
+  // overwrite a half-finished collection with only the chunks still to come.
+  const bundle: TokenBundle = loadBundle(data.term.id) ?? {
     version: 1,
     term: data.term.id,
     termLabel: data.term.label,
@@ -186,6 +188,7 @@ export async function collectTokens(
     tokens: [],
     rated: [],
   };
+  const held = new Set(bundle.tokens.map((t) => t.teacherId));
 
   const chunkCount = Math.ceil(total / chunkSize);
   let firstError: string | null = null;
@@ -240,10 +243,11 @@ export async function collectTokens(
     for (const signature of payload.signatures) {
       const request = requests.find((r) => r.teacherId === signature.teacherId);
       const publicKey = keyByTeacher.get(signature.teacherId);
-      if (!request || !publicKey) continue;
+      if (!request || !publicKey || held.has(signature.teacherId)) continue;
       bundle.tokens.push(
         await finalizeToken(request, publicKey, fromBase64(signature.blindSignature)),
       );
+      held.add(signature.teacherId);
     }
 
     // Saved as we go, so a crash or a closed tab keeps what was collected.
@@ -261,6 +265,76 @@ export async function collectTokens(
   }
 
   saveBundle(bundle);
+  return bundle;
+}
+
+/**
+ * Collects tokens for teachers who joined after this student first collected.
+ *
+ * Every teacher the browser still needs goes in each request; the server signs
+ * the next few and says how many remain. Run only once the student's own
+ * tokens are in this browser, collected or restored, so the new ones are added
+ * to that set rather than starting a separate one.
+ */
+export async function topUpTokens(
+  idToken: string,
+  deptChoice: string | undefined,
+  bundle: TokenBundle,
+  added?: IssuableTeacher[],
+): Promise<TokenBundle> {
+  let teachers = added;
+  if (!teachers) {
+    const response = await fetch("/api/issue", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ idToken, deptChoice }),
+    });
+    const payload = (await response.json()) as { addedTeachers?: IssuableTeacher[] };
+    teachers = payload.addedTeachers ?? [];
+  }
+
+  const held = new Set(bundle.tokens.map((t) => t.teacherId));
+  let pending = await Promise.all(
+    teachers
+      .filter((t) => !held.has(t.id))
+      .map(async (t) => ({ teacher: t, request: await createBlindRequest(t.id, t.publicKey) })),
+  );
+
+  // Bounded, in case the server and the browser ever disagree about what is
+  // left: a stuck loop would hammer the endpoint.
+  for (let round = 0; pending.length > 0 && round < 50; round += 1) {
+    const response = await fetch("/api/issue", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        idToken,
+        deptChoice,
+        topUp: true,
+        blinded: pending.map((p) => ({
+          teacherId: p.teacher.id,
+          blinded: btoa(String.fromCharCode(...p.request.blinded)),
+        })),
+      }),
+    });
+    const payload = (await response.json()) as {
+      signatures?: { teacherId: string; blindSignature: string }[];
+      remaining?: number;
+    };
+    if (!response.ok || !payload.signatures) break;
+
+    for (const signature of payload.signatures) {
+      const item = pending.find((p) => p.teacher.id === signature.teacherId);
+      if (!item || held.has(item.teacher.id)) continue;
+      bundle.tokens.push(
+        await finalizeToken(item.request, item.teacher.publicKey, fromBase64(signature.blindSignature)),
+      );
+      held.add(item.teacher.id);
+    }
+    saveBundle(bundle);
+    pending = pending.filter((p) => !held.has(p.teacher.id));
+    if (!payload.remaining) break;
+  }
+
   return bundle;
 }
 

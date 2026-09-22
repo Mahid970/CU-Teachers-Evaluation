@@ -107,6 +107,13 @@ export function MyTokens() {
             style={{ width: `${(done.length / Math.max(bundle.tokens.length, 1)) * 100}%` }}
           />
         </div>
+        <p className="mt-3 text-xs text-ink-muted">
+          A teacher joined your department?{" "}
+          <Link href="/verify" className="link-grow font-semibold text-brand">
+            Sign in again
+          </Link>{" "}
+          to collect a token for them.
+        </p>
 
         <VaultPanel bundle={bundle} />
 

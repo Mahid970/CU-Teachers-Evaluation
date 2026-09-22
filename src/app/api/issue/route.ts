@@ -14,6 +14,8 @@ export const dynamic = "force-dynamic";
  *
  *   POST { idToken }                           -> department, teachers, chunk size
  *   POST { idToken, chunk, blinded: [...] }    -> signatures for that chunk
+ *   POST { idToken, topUp: true, blinded }     -> signatures for teachers added
+ *                                                 since this student collected
  *
  * Signing is split into small chunks so a single request stays well inside the
  * Workers CPU limit, and so a dropped connection costs a student a few teachers
@@ -23,10 +25,18 @@ export const dynamic = "force-dynamic";
  * is what stops a student spending every token on one teacher: they cannot
  * choose who a chunk is for. Progress is a single counter on the issuance row —
  * no teacher is ever recorded against a student.
+ *
+ * Ratings are permanent, so teachers join after students have collected. Each
+ * teacher carries a sequence number (0 for everyone present at launch), and the
+ * issuance row keeps only the highest number a student's tokens cover. A top-up
+ * signs the teachers above that watermark and raises it. Still a number, never
+ * a list of teachers.
  */
 
 /** Teachers signed per request. Sized from measured signing cost. */
 export const CHUNK_SIZE = 4;
+/** Teachers signed per top-up request. New teachers arrive a few at a time. */
+export const TOPUP_SIZE = 8;
 
 const RequestSchema = z.object({
   // Real Google ID tokens are long; the lower bound only rejects empty input
@@ -37,6 +47,8 @@ const RequestSchema = z.object({
   turnstileToken: z.string().max(4096).optional(),
   /** Which slice of the student's teacher list this request is for. */
   chunk: z.number().int().min(0).max(500).optional(),
+  /** Asks for the teachers added since this student collected their tokens. */
+  topUp: z.boolean().optional(),
   blinded: z
     .array(
       z.object({
@@ -47,6 +59,22 @@ const RequestSchema = z.object({
     .max(200)
     .optional(),
 });
+
+/**
+ * True when the items name every expected teacher exactly once.
+ *
+ * Comparing lengths alone is not enough: [A, A, B] has the length of [A, B, C]
+ * and would have been signed twice for A. Two tokens for one teacher is two
+ * votes, so a repeated teacher must fail the whole request.
+ */
+function coversExactly(items: { teacherId: string }[], expected: Set<string>) {
+  const seen = new Set(items.map((i) => i.teacherId));
+  return (
+    items.length === expected.size &&
+    seen.size === expected.size &&
+    [...expected].every((id) => seen.has(id))
+  );
+}
 
 function fail(message: string, status = 400) {
   return Response.json({ error: message }, { status });
@@ -65,7 +93,7 @@ export async function POST(request: Request) {
 
   const parsed = RequestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail("Malformed request.");
-  const { idToken, blinded, deptChoice, turnstileToken, chunk } = parsed.data;
+  const { idToken, blinded, deptChoice, turnstileToken, chunk, topUp } = parsed.data;
 
   if (!(await verifyTurnstile(turnstileToken))) {
     return fail("Please complete the check that you are not a robot.", 403);
@@ -128,21 +156,61 @@ export async function POST(request: Request) {
     dept_slug: string;
     photo_url: string | null;
     dept_name: string;
+    added_seq: number;
   };
 
   const departments = rateableDepartments(deptSlug);
   const slugs = departments.map((d) => d.slug);
   const { results: teachers } = await cfEnv.DB.prepare(
-    `SELECT t.id, t.name, t.designation, t.dept_slug, t.photo_url, d.name AS dept_name
+    `SELECT t.id, t.name, t.designation, t.dept_slug, t.photo_url, d.name AS dept_name,
+            t.added_seq
      FROM teachers t JOIN departments d ON d.slug = t.dept_slug
      WHERE t.active = 1 AND t.dept_slug IN (${slugs.map(() => "?").join(",")})
+       -- A teacher without a key yet cannot be signed for; they join the list
+       -- (as a top-up) once keys:gen has run.
+       AND EXISTS (SELECT 1 FROM teacher_term_keys k
+                   WHERE k.teacher_id = t.id AND k.term_id = ?)
      ORDER BY t.dept_slug, t.sort_order, t.id`,
   )
-    .bind(...slugs)
+    .bind(...slugs, term.id)
     .all<TeacherRow>();
+
+  if (!cfEnv.MASTER_KEY || !cfEnv.TERM_PEPPER) return fail("Server is not configured.", 500);
+  const hmac = await studentHmac(cfEnv.TERM_PEPPER, studentId);
+
+  const readIssuance = () =>
+    cfEnv.DB.prepare(
+      `SELECT next_index, seq_through FROM issuances WHERE term_id = ?1 AND student_hmac = ?2`,
+    )
+      .bind(term.id, hmac)
+      .first<{ next_index: number; seq_through: number }>();
+
+  // The newest teacher's number. A student collecting for the first time is
+  // covered up to here; anyone added afterwards is a top-up.
+  const newest =
+    (
+      await cfEnv.DB.prepare(
+        `SELECT COALESCE(MAX(t.added_seq), 0) AS seq FROM teachers t
+         JOIN teacher_term_keys k ON k.teacher_id = t.id AND k.term_id = ?1`,
+      )
+        .bind(term.id)
+        .first<{ seq: number }>()
+    )?.seq ?? 0;
+
+  // Split the list at a student's watermark: what their first collection
+  // covers, in the fixed chunk order, and what has been added since.
+  const split = (watermark: number) => ({
+    initial: teachers.filter((t) => t.added_seq <= watermark),
+    added: teachers
+      .filter((t) => t.added_seq > watermark)
+      .sort((a, b) => a.added_seq - b.added_seq || a.id.localeCompare(b.id)),
+  });
 
   // ---- Step 1: tell the browser what it may ask to have signed ----------
   if (!blinded) {
+    const existing = await readIssuance();
+    const { initial, added } = split(existing ? existing.seq_through : newest);
+
     // Only this student's teachers: fetching every key for the term would read
     // a thousand rows to use twenty.
     const teacherIds = teachers.map((t) => t.id);
@@ -154,15 +222,8 @@ export async function POST(request: Request) {
       .all<{ teacher_id: string; public_key: string }>();
     const keyByTeacher = new Map(keys.map((k) => [k.teacher_id, k.public_key]));
 
-    return Response.json({
-      term: { id: term.id, label: term.label },
-      session,
-      chunkSize: CHUNK_SIZE,
-      department: {
-        slug: deptSlug,
-        name: DEPARTMENT_BY_SLUG[deptSlug]?.name ?? deptSlug,
-      },
-      teachers: teachers
+    const describe = (list: TeacherRow[]) =>
+      list
         .filter((t) => keyByTeacher.has(t.id))
         .map((t) => ({
           id: t.id,
@@ -171,33 +232,108 @@ export async function POST(request: Request) {
           deptName: t.dept_name,
           photoUrl: t.photo_url,
           publicKey: JSON.parse(keyByTeacher.get(t.id) ?? "{}") as JsonWebKey,
-        })),
+        }));
+
+    return Response.json({
+      term: { id: term.id, label: term.label },
+      session,
+      chunkSize: CHUNK_SIZE,
+      topUpSize: TOPUP_SIZE,
+      department: {
+        slug: deptSlug,
+        name: DEPARTMENT_BY_SLUG[deptSlug]?.name ?? deptSlug,
+      },
+      // Covered by the first collection, in chunk order.
+      teachers: describe(initial),
+      // Joined since this student collected. Empty for a first collection.
+      addedTeachers: existing ? describe(added) : [],
     });
   }
 
-  // ---- Step 2: sign, once per student per term --------------------------
-  if (!cfEnv.MASTER_KEY || !cfEnv.TERM_PEPPER) return fail("Server is not configured.", 500);
+  // ---- Top-up: teachers added since this student collected ---------------
+  if (topUp) {
+    const row = await readIssuance();
+    if (!row) return fail("Collect your tokens first.");
 
+    const { initial, added } = split(row.seq_through);
+    if (row.next_index < Math.ceil(initial.length / CHUNK_SIZE)) {
+      return fail("Finish collecting your first set of tokens first.");
+    }
+    if (added.length === 0) {
+      return Response.json(
+        { error: "There are no new teachers to collect tokens for.", alreadyIssued: true },
+        { status: 409 },
+      );
+    }
+
+    // The next slice, never splitting teachers who share a number, so the
+    // watermark lands on a boundary and nobody is skipped.
+    let end = Math.min(TOPUP_SIZE, added.length);
+    while (end < added.length && added[end].added_seq === added[end - 1].added_seq) end += 1;
+    const slice = added.slice(0, end);
+    const nextWatermark = slice[slice.length - 1].added_seq;
+
+    // The browser sends every new teacher it still needs; this request signs
+    // only the next slice, and it must be complete. Nothing outside the new
+    // teachers may be asked for at all.
+    const addedIds = new Set(added.map((t) => t.id));
+    const sliceIds = new Set(slice.map((t) => t.id));
+    const requested = blinded.filter((b) => sliceIds.has(b.teacherId));
+    if (
+      !coversExactly(requested, sliceIds) ||
+      blinded.some((b) => !addedIds.has(b.teacherId))
+    ) {
+      return fail("This request does not match the new teachers.");
+    }
+
+    // Raising the watermark and claiming the slice are one statement, so two
+    // requests for the same teachers cannot both be signed.
+    const claimed = await cfEnv.DB.prepare(
+      `UPDATE issuances SET seq_through = ?4
+       WHERE term_id = ?1 AND student_hmac = ?2 AND seq_through = ?3`,
+    )
+      .bind(term.id, hmac, row.seq_through, nextWatermark)
+      .run();
+    if (claimed.meta.changes === 0) {
+      return Response.json(
+        {
+          error: "These tokens were already issued and cannot be issued twice.",
+          alreadyIssued: true,
+        },
+        { status: 409 },
+      );
+    }
+
+    return Response.json({
+      term: { id: term.id, label: term.label },
+      signatures: await signAll(requested),
+      remaining: added.length - slice.length,
+    });
+  }
+
+  // ---- Step 2: sign the first collection, once per student ---------------
   if (chunk === undefined) return fail("Which chunk is this request for?");
 
-  const totalChunks = Math.ceil(teachers.length / CHUNK_SIZE);
-  const expected = teachers.slice(chunk * CHUNK_SIZE, chunk * CHUNK_SIZE + CHUNK_SIZE);
+  await cfEnv.DB.prepare(
+    `INSERT OR IGNORE INTO issuances (term_id, student_hmac, issued_on, next_index, seq_through)
+     VALUES (?1, ?2, ?3, 0, ?4)`,
+  )
+    .bind(term.id, hmac, todayIso(), newest)
+    .run();
+
+  const row = await readIssuance();
+  const { initial } = split(row?.seq_through ?? newest);
+
+  const totalChunks = Math.ceil(initial.length / CHUNK_SIZE);
+  const expected = initial.slice(chunk * CHUNK_SIZE, chunk * CHUNK_SIZE + CHUNK_SIZE);
   if (expected.length === 0) return fail("That chunk is past the end of the list.");
 
   // The client may only ask for exactly the teachers this chunk covers.
   const expectedIds = new Set(expected.map((t) => t.id));
   const requested = blinded.filter((b) => expectedIds.has(b.teacherId));
-  if (requested.length !== expected.length || requested.length !== blinded.length) {
+  if (!coversExactly(requested, expectedIds) || requested.length !== blinded.length) {
     return fail("This request does not match the teachers for that chunk.");
   }
-
-  const hmac = await studentHmac(cfEnv.TERM_PEPPER!, studentId);
-  await cfEnv.DB.prepare(
-    `INSERT OR IGNORE INTO issuances (term_id, student_hmac, issued_on, next_index)
-     VALUES (?1, ?2, ?3, 0)`,
-  )
-    .bind(term.id, hmac, todayIso())
-    .run();
 
   // Advancing the counter and claiming the chunk are the same statement, so two
   // requests for one chunk cannot both succeed.
@@ -209,11 +345,6 @@ export async function POST(request: Request) {
     .run();
 
   if (claimed.meta.changes === 0) {
-    const row = await cfEnv.DB.prepare(
-      `SELECT next_index FROM issuances WHERE term_id = ?1 AND student_hmac = ?2`,
-    )
-      .bind(term.id, hmac)
-      .first<{ next_index: number }>();
     const done = row?.next_index ?? 0;
     return Response.json(
       {
@@ -229,36 +360,39 @@ export async function POST(request: Request) {
     );
   }
 
-  // Private keys are large; read only the ones about to be used.
-  const requestedIds = requested.map((r) => r.teacherId);
-  const { results: keyRows } = requestedIds.length
-    ? await cfEnv.DB.prepare(
-        `SELECT teacher_id, private_key_wrapped FROM teacher_term_keys
-         WHERE term_id = ?1 AND teacher_id IN (${requestedIds.map(() => "?").join(",")})`,
-      )
-        .bind(term.id, ...requestedIds)
-        .all<{ teacher_id: string; private_key_wrapped: string }>()
-    : { results: [] as { teacher_id: string; private_key_wrapped: string }[] };
-  const wrappedByTeacher = new Map(keyRows.map((k) => [k.teacher_id, k.private_key_wrapped]));
-
-  // Signed concurrently: a student waits on one round trip for every teacher
-  // in their department, so doing these one after another is felt directly.
-  const signed = await Promise.all(
-    requested.map(async (item) => {
-      const wrapped = wrappedByTeacher.get(item.teacherId);
-      if (!wrapped) return null;
-      const privateJwk = await decryptJson<JsonWebKey>(cfEnv.MASTER_KEY!, wrapped);
-      const signature = await blindSign(privateJwk, fromBase64(item.blinded));
-      return { teacherId: item.teacherId, blindSignature: toBase64(signature) };
-    }),
-  );
-  const signatures = signed.filter((s) => s !== null);
-
   return Response.json({
     term: { id: term.id, label: term.label },
-    signatures,
+    signatures: await signAll(requested),
     chunk,
     nextChunk: chunk + 1,
     totalChunks,
   });
+
+  /** Signs blinded values with each teacher's private key. */
+  async function signAll(items: { teacherId: string; blinded: string }[]) {
+    // Private keys are large; read only the ones about to be used.
+    const ids = items.map((r) => r.teacherId);
+    const { results: keyRows } = ids.length
+      ? await cfEnv.DB.prepare(
+          `SELECT teacher_id, private_key_wrapped FROM teacher_term_keys
+           WHERE term_id = ?1 AND teacher_id IN (${ids.map(() => "?").join(",")})`,
+        )
+          .bind(term!.id, ...ids)
+          .all<{ teacher_id: string; private_key_wrapped: string }>()
+      : { results: [] as { teacher_id: string; private_key_wrapped: string }[] };
+    const wrappedByTeacher = new Map(keyRows.map((k) => [k.teacher_id, k.private_key_wrapped]));
+
+    // Signed concurrently: a student waits on one round trip for every teacher
+    // in their department, so doing these one after another is felt directly.
+    const signed = await Promise.all(
+      items.map(async (item) => {
+        const wrapped = wrappedByTeacher.get(item.teacherId);
+        if (!wrapped) return null;
+        const privateJwk = await decryptJson<JsonWebKey>(cfEnv.MASTER_KEY!, wrapped);
+        const signature = await blindSign(privateJwk, fromBase64(item.blinded));
+        return { teacherId: item.teacherId, blindSignature: toBase64(signature) };
+      }),
+    );
+    return signed.filter((s) => s !== null);
+  }
 }
