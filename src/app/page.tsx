@@ -24,7 +24,10 @@ import { CampusMap } from "@/components/campus-map";
 import { FACULTIES } from "@/lib/departments";
 import { getDepartmentSummaries, getRankedTeachers, getSiteCounts } from "@/lib/db";
 
-export const revalidate = 300;
+// Read from the live database on every request. With ISR, `next build` wrote
+// these pages from the build machine's local database, and with no refresh
+// queue configured those copies were served in production indefinitely.
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [counts, ranked, deptSummaries] = await Promise.all([

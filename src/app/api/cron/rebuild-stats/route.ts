@@ -5,19 +5,19 @@ import { todayIso } from "@/lib/server-crypto";
 export const dynamic = "force-dynamic";
 
 /**
- * Daily aggregate rebuild, triggered by the Workers cron (see wrangler.jsonc).
+ * Aggregate rebuild by hand, with the CRON_SECRET only.
  *
+ * The daily run is the `scheduled` handler in worker.ts, not this route.
  * Public numbers move once a day rather than on every write, so a teacher
- * cannot match a change in their score to a particular student's visit.
- *
- * Also callable by hand with the CRON_SECRET, for the first run of a term.
+ * cannot match a change in their score to a particular student's visit. That
+ * is why this must never be callable without the secret: a request header
+ * such as the old `x-cron-trigger` is set by whoever sends the request.
  */
 export async function POST(request: Request) {
   const { env: cfEnv } = await getCloudflareContext({ async: true });
 
   const provided = request.headers.get("x-cron-secret");
-  const isCron = request.headers.get("x-cron-trigger") === "1";
-  if (!isCron && (!cfEnv.CRON_SECRET || provided !== cfEnv.CRON_SECRET)) {
+  if (!cfEnv.CRON_SECRET || provided !== cfEnv.CRON_SECRET) {
     return new Response("Not found", { status: 404 });
   }
 

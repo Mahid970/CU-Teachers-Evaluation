@@ -25,7 +25,10 @@ import {
   MIN_REVIEWS_TO_SHOW,
 } from "@/lib/rating";
 
-export const revalidate = 300;
+// Read from the live database on every request. With ISR, `next build` wrote
+// these pages from the build machine's local database, and with no refresh
+// queue configured those copies were served in production indefinitely.
+export const dynamic = "force-dynamic";
 
 /** What each criterion is about, so the six bars are scannable apart. */
 const CRITERION_ICON = {

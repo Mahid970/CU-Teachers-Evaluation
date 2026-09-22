@@ -7,10 +7,11 @@ import { StarRow } from "@/components/stars";
 import { DEPARTMENT_BY_SLUG, FACULTY_BY_KEY } from "@/lib/departments";
 import { getTeachersByDept } from "@/lib/db";
 
-export const revalidate = 300;
+// Read from the live database on every request. With ISR, `next build` wrote
+// these pages from the build machine's local database, and with no refresh
+// queue configured those copies were served in production indefinitely.
+export const dynamic = "force-dynamic";
 
-// Rendered on demand and cached (see `revalidate`), rather than prerendered:
-// the database is a Cloudflare binding that is not available at build time.
 export async function generateMetadata({
   params,
 }: PageProps<"/d/[slug]">): Promise<Metadata> {
