@@ -120,7 +120,6 @@ const rate = (token, teacherId, body = {}) =>
     signature: token.signature,
     scores,
     takeAgain: true,
-    tags: ["clear-slides"],
     ...body,
   });
 

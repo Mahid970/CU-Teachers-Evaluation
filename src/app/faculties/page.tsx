@@ -25,8 +25,8 @@ export default async function FacultiesPage() {
     <div className="mx-auto max-w-6xl px-4 py-14">
       <h1 className="display text-4xl">Faculties &amp; departments</h1>
       <p className="mt-3 max-w-2xl text-sm text-ink-muted">
-        Nine faculties, {summaries.length} departments, institutes and centres. The
-        code beside each department is the one that appears in student IDs.
+        Nine faculties and {summaries.filter((d) => d.code).length} departments and
+        institutes. The code beside each one is the one that appears in student IDs.
       </p>
 
       <div className="mt-12 space-y-14">

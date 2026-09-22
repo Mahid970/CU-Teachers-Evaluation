@@ -23,7 +23,6 @@ import { CountUp } from "@/components/count-up";
 import { CampusMap } from "@/components/campus-map";
 import { FACULTIES } from "@/lib/departments";
 import { getDepartmentSummaries, getRankedTeachers, getSiteCounts } from "@/lib/db";
-import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
 
 export const revalidate = 300;
 
@@ -37,7 +36,8 @@ export default async function HomePage() {
   const byFaculty = new Map<string, { depts: number; teachers: number }>();
   for (const d of deptSummaries) {
     const entry = byFaculty.get(d.faculty_key) ?? { depts: 0, teachers: 0 };
-    entry.depts += 1;
+    // Shared English-teacher units add teachers, not departments.
+    if (d.code) entry.depts += 1;
     entry.teachers += d.teachers;
     byFaculty.set(d.faculty_key, entry);
   }
@@ -124,7 +124,7 @@ export default async function HomePage() {
                   See all teachers
                 </Link>
               }
-              emptyNote={`No teacher has ${MIN_RATINGS_TO_SHOW} ratings yet. The board fills up as students rate.`}
+              emptyNote="No teacher has been rated yet. The board fills up as students rate."
             />
           </div>
         </div>

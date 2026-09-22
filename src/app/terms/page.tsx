@@ -40,8 +40,9 @@ export default function TermsPage() {
 
       <h2 className="display mt-12 text-3xl">Content</h2>
       <p className="mt-4 text-ink-muted">
-        Ratings are numeric, with a fixed set of tags; there is no free text. We remove
-        ratings that breach the{" "}
+        Ratings are numeric, and a student may add an optional short written review.
+        Reviews are the opinion of the student who wrote them. We remove ratings and
+        reviews that breach the{" "}
         <Link href="/guidelines" className="text-brand hover:underline">
           guidelines
         </Link>

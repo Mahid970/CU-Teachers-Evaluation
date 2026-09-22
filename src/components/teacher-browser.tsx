@@ -4,7 +4,6 @@ import { useMemo, useState, type ReactNode } from "react";
 import { ChevronDown, Search, SearchX } from "lucide-react";
 import type { TeacherListItem } from "@/lib/db";
 import { FACULTIES } from "@/lib/departments";
-import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
 import { TeacherRow } from "./teacher-card";
 
 export type SortKey = "top" | "low" | "most" | "name";
@@ -191,7 +190,7 @@ export function TeacherBrowser({
 
       <p className="mt-4 text-sm text-ink-muted" aria-live="polite">
         {visible.length} teacher{visible.length === 1 ? "" : "s"}
-        {sort !== "name" && ` with at least ${MIN_RATINGS_TO_SHOW} ratings`}
+        {sort !== "name" && " with ratings"}
       </p>
 
       {visible.length === 0 ? (
@@ -202,7 +201,7 @@ export function TeacherBrowser({
           <p className="display text-xl">Nothing here yet</p>
           <p className="prose-measure mx-auto mt-2 text-ink-muted">
             {emptyNote ??
-              `Scores appear once a teacher has ${MIN_RATINGS_TO_SHOW} ratings. Sort by A–Z to see everyone.`}
+              "Nobody here has been rated yet. Sort by A–Z to see everyone."}
           </p>
         </div>
       ) : (

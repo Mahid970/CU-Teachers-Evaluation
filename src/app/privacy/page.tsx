@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { X } from "lucide-react";
 import { TokenPool } from "@/components/token-pool";
-import { MIN_RATINGS_TO_SHOW, MIN_REVIEWS_TO_SHOW } from "@/lib/rating";
 
 export const metadata: Metadata = {
   title: "Privacy",
@@ -80,12 +79,16 @@ export default function PrivacyPage() {
 
       <h2 className="display mt-14 text-3xl">Two more protections</h2>
       <p className="mt-4 text-ink-muted">
-        A teacher with very few ratings could guess who wrote one, so scores stay
-        hidden until a teacher has at least {MIN_RATINGS_TO_SHOW} ratings. Public
-        figures are also rebuilt once a day rather than the moment a rating arrives,
+        Public figures are rebuilt once a day rather than the moment a rating arrives,
         so no one can watch a number move right after a particular student was in
         the room. Your browser waits a random moment before sending, for the same
         reason.
+      </p>
+      <p className="mt-4 text-ink-muted">
+        One thing these cannot hide: a teacher&apos;s scores appear from the first
+        rating. If only one or two students have rated someone, that teacher may be
+        able to guess who they were, especially in a small class. If that worries
+        you, wait until others in your class have rated.
       </p>
 
       <h2 className="display mt-14 text-3xl">What this does not protect against</h2>
@@ -175,9 +178,8 @@ export default function PrivacyPage() {
         it. A teacher knows who missed the Thursday presentation.
       </p>
       <p className="prose-measure mt-4 text-ink-muted">
-        Three things blunt that. Reviews are short by design. None appear until{" "}
-        {MIN_REVIEWS_TO_SHOW} students have written one, so a review is never the
-        only one on a page. And a review is never stored beside the scores it
+        Two things blunt that. Reviews are short by design. And a review is never
+        stored beside the scores it
         came with. It arrives in a separate request, is filed under a different
         value, and sits in a table that shares no key with the ratings. Nobody
         reading our database, including us, can put a sentence next to the number

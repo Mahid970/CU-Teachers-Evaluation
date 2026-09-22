@@ -69,7 +69,6 @@ function toListItem(row: JoinedRow): TeacherListItem {
 export type TeacherWithStats = TeacherRow & {
   stats: (Omit<StatsRow, "distribution" | "tag_counts"> & {
     distribution: number[];
-    tagCounts: Record<string, number>;
   }) | null;
 };
 
@@ -78,7 +77,7 @@ const TEACHER_SELECT = `
          d.name AS dept_name, d.faculty_key, f.short_name AS faculty_short,
          s.n, s.avg_clarity, s.avg_knowledge, s.avg_punctuality, s.avg_fairness,
          s.avg_accessibility, s.avg_engagement, s.avg_overall, s.avg_difficulty,
-         s.take_again_pct, s.bayesian_score, s.distribution, s.tag_counts
+         s.take_again_pct, s.bayesian_score, s.distribution
   FROM teachers t
   JOIN departments d ON d.slug = t.dept_slug
   JOIN faculties f ON f.key = d.faculty_key
@@ -113,7 +112,6 @@ function hydrate(row: JoinedRow): TeacherWithStats {
           take_again_pct: row.take_again_pct!,
           bayesian_score: row.bayesian_score!,
           distribution: JSON.parse(row.distribution ?? "[0,0,0,0,0]") as number[],
-          tagCounts: JSON.parse(row.tag_counts ?? "{}") as Record<string, number>,
         }
       : null,
   };
@@ -191,7 +189,9 @@ export async function getSiteCounts(): Promise<SiteCounts> {
     .prepare(
       `SELECT
          (SELECT COUNT(*) FROM teachers WHERE active = 1) AS teachers,
-         (SELECT COUNT(*) FROM departments) AS departments,
+         -- Only units with a student ID code are departments students belong
+         -- to. Shared English-teacher units hold teachers but admit nobody.
+         (SELECT COUNT(*) FROM departments WHERE code IS NOT NULL) AS departments,
          (SELECT COUNT(*) FROM faculties) AS faculties,
          (SELECT COALESCE(SUM(n), 0) FROM teacher_stats WHERE term_id = 'all') AS ratings`,
     )
@@ -204,6 +204,8 @@ export type DeptSummary = {
   name: string;
   faculty_key: string;
   kind: string;
+  /** The code in student IDs; null for a shared unit nobody is admitted to. */
+  code: string | null;
   teachers: number;
   rated_teachers: number;
   avg_overall: number | null;
@@ -212,7 +214,7 @@ export type DeptSummary = {
 export async function getDepartmentSummaries(): Promise<DeptSummary[]> {
   const { results } = await (await db())
     .prepare(
-      `SELECT d.slug, d.name, d.faculty_key, d.kind,
+      `SELECT d.slug, d.name, d.faculty_key, d.kind, d.code,
               COUNT(t.id) AS teachers,
               SUM(CASE WHEN s.n >= ?1 THEN 1 ELSE 0 END) AS rated_teachers,
               AVG(CASE WHEN s.n >= ?1 THEN s.avg_overall END) AS avg_overall
@@ -220,6 +222,7 @@ export async function getDepartmentSummaries(): Promise<DeptSummary[]> {
        LEFT JOIN teachers t ON t.dept_slug = d.slug AND t.active = 1
        LEFT JOIN teacher_stats s ON s.teacher_id = t.id AND s.term_id = 'all'
        GROUP BY d.slug
+       HAVING COUNT(t.id) > 0
        ORDER BY d.sort_order`,
     )
     .bind(MIN_RATINGS_TO_SHOW)

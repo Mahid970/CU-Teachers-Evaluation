@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { IdDecode } from "@/components/id-decode";
-import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
+import { MAX_REVIEW_LENGTH } from "@/lib/rating";
 
 export const metadata: Metadata = {
   title: "Rating guidelines",
@@ -37,8 +37,8 @@ export default function GuidelinesPage() {
       <h2 className="display mt-12 text-3xl">How to read the numbers</h2>
       <ul className="mt-4 space-y-3 text-ink-muted">
         <li>
-          Ratings appear only once a teacher has {MIN_RATINGS_TO_SHOW} of them, and a
-          score based on six ratings is still a weak signal.
+          A teacher appears with their first rating, so check how many students
+          a score is based on. One or two ratings are a weak signal.
         </li>
         <li>
           Rankings use a weighted average, so a teacher with three perfect scores does
@@ -54,13 +54,26 @@ export default function GuidelinesPage() {
         </li>
       </ul>
 
-      <h2 className="display mt-12 text-3xl">Why there are no written comments</h2>
+      <h2 className="display mt-12 text-3xl">Writing a review</h2>
       <p className="mt-4 text-ink-muted">
-        Free text is the fastest way to identify the person who wrote it: phrasing,
-        spelling and the incident described can all point at one student. It also
-        attracts abuse and defamation. Fixed tags keep the useful signal without
-        putting anyone at risk.
+        You can add a short review in your own words, up to {MAX_REVIEW_LENGTH}{" "}
+        characters. It is optional, and it is shown apart from your scores, so no
+        one can match the two.
       </p>
+      <ul className="mt-4 space-y-3 text-ink-muted">
+        <li>
+          Your wording can give you away. Leave out anything only you would know:
+          a specific day, an incident, your seat, a conversation you had.
+        </li>
+        <li>
+          Write about the teaching. No insults, no claims about someone&apos;s private
+          life, and no names of other students or staff.
+        </li>
+        <li>
+          Reviews that break these rules are removed, and anyone can report one
+          from the teacher&apos;s page.
+        </li>
+      </ul>
 
       <h2 className="display mt-12 text-3xl">Fair use</h2>
       <p className="mt-4 text-ink-muted">

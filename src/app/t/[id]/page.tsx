@@ -22,9 +22,7 @@ import { DEPARTMENT_BY_SLUG, FACULTY_BY_KEY } from "@/lib/departments";
 import { getTeacher, getTeacherReviews, getTeachersByDept } from "@/lib/db";
 import {
   CRITERIA,
-  MIN_RATINGS_TO_SHOW,
   MIN_REVIEWS_TO_SHOW,
-  TAGS,
 } from "@/lib/rating";
 
 export const revalidate = 300;
@@ -67,9 +65,6 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
   const reviews = await getTeacherReviews(teacher.id, MIN_REVIEWS_TO_SHOW);
 
   const maxBar = stats ? Math.max(...stats.distribution, 1) : 1;
-  const topTags = stats
-    ? Object.entries(stats.tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 6)
-    : [];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
@@ -173,24 +168,6 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
                 })}
               </ul>
 
-              {topTags.length > 0 && (
-                <>
-                  <h2 className="reveal display mt-12 text-2xl">What students said</h2>
-                  <ul className="mt-4 flex flex-wrap gap-2">
-                    {topTags.map(([key, count]) => (
-                      <li key={key} className="tag">
-                        {TAGS.find((t) => t.key === key)?.label ?? key}
-                        <span className="numerals text-ink-muted">{count}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="prose-measure mt-4 text-sm text-ink-muted">
-                    Students choose these from a fixed list, so they can be
-                    counted across everyone who rated.
-                  </p>
-                </>
-              )}
-
               {reviews.length > 0 && (
                 <>
                   <h2 className="reveal display mt-12 text-2xl">In students&apos; words</h2>
@@ -228,15 +205,14 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
               <span className="stat-icon mb-4" aria-hidden="true">
                 <Hourglass size={20} strokeWidth={1.5} />
               </span>
-              <h2 className="display text-2xl">Not enough ratings yet</h2>
+              <h2 className="display text-2xl">No ratings yet</h2>
               <p className="prose-measure mt-3 text-ink-muted">
-                Scores stay hidden until {MIN_RATINGS_TO_SHOW} students have rated
-                a teacher, so nobody can be identified from a handful of responses.
-                Every score here comes from a verified student of this department.
+                Nobody has rated {teacher.name} yet. Every score here will come
+                from a verified student of this department.
               </p>
               <Link href="/verify" className="btn btn-primary mt-6">
                 <Star size={16} strokeWidth={2} aria-hidden="true" />
-                Be one of the first to rate
+                Be the first to rate
               </Link>
             </div>
           )}

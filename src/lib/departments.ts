@@ -85,8 +85,6 @@ export const DEPARTMENTS: Department[] = [
   { slug: "marketing", code: "304", name: "Marketing", unit: "Marketing", faculty: "business", kind: "department" },
   { slug: "hrm", code: "305", name: "Human Resource Management", unit: "Human Resource Management", faculty: "business", kind: "department" },
   { slug: "banking-insurance", code: "306", name: "Banking and Insurance", unit: "Banking and Insurance", faculty: "business", kind: "department" },
-  { slug: "cucba", code: null, name: "CU Centre for Business Administration", unit: "Chittagong University Center for Business Administration", faculty: "business", kind: "centre" },
-  { slug: "english-teachers-business", code: null, name: "English Teachers (Business Administration)", unit: "English Teachers of Business Administration Faculty", faculty: "business", kind: "centre" },
 
   // Social Sciences
   { slug: "economics", code: "401", name: "Economics", unit: "Economics", faculty: "social", kind: "department" },

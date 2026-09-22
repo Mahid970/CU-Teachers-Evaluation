@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { TeacherBrowser } from "@/components/teacher-browser";
 import { getAllTeachers } from "@/lib/db";
-import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
 
 export const revalidate = 300;
 
@@ -19,9 +18,7 @@ export default async function TeachersPage() {
       <h1 className="display text-4xl">All teachers</h1>
       <p className="mt-3 text-sm text-ink-muted">
         Every teacher listed on the public pages of cu.ac.bd, {teachers.length} in
-        all. Ratings appear once a teacher has at least {MIN_RATINGS_TO_SHOW} of
-        them; below that the numbers stay hidden so no one can be identified from
-        a handful of responses.
+        all. A teacher&apos;s scores appear as soon as one student has rated them.
       </p>
 
       <div className="mt-10">

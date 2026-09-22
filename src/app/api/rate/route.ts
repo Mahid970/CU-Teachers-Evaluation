@@ -2,7 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { z } from "zod";
 import { fromBase64, tokenHash, verifyToken } from "@/lib/blind";
 import { todayIso } from "@/lib/server-crypto";
-import { CRITERION_KEYS, MAX_TAGS, TAG_KEYS } from "@/lib/rating";
+import { CRITERION_KEYS } from "@/lib/rating";
 import { rateLimit } from "@/lib/guard";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +33,6 @@ const RatingSchema = z.object({
     difficulty: score,
   }),
   takeAgain: z.boolean(),
-  tags: z.array(z.enum(TAG_KEYS as [string, ...string[]])).max(MAX_TAGS).default([]),
 });
 
 export async function POST(request: Request) {
@@ -54,7 +53,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return Response.json({ error: "That rating was not in the expected shape." }, { status: 400 });
   }
-  const { teacherId, prepared, signature, scores, takeAgain, tags } = parsed.data;
+  const { teacherId, prepared, signature, scores, takeAgain } = parsed.data;
 
   const term = await db
     .prepare(`SELECT id FROM terms WHERE is_open = 1 ORDER BY opens_at DESC LIMIT 1`)
@@ -95,14 +94,14 @@ export async function POST(request: Request) {
       `INSERT INTO ratings (
          token_hash, teacher_id, term_id,
          clarity, knowledge, punctuality, fairness, accessibility, engagement,
-         overall, difficulty, take_again, tags, rated_on
-       ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)
+         overall, difficulty, take_again, rated_on
+       ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)
        ON CONFLICT(token_hash) DO UPDATE SET
          clarity = excluded.clarity, knowledge = excluded.knowledge,
          punctuality = excluded.punctuality, fairness = excluded.fairness,
          accessibility = excluded.accessibility, engagement = excluded.engagement,
          overall = excluded.overall, difficulty = excluded.difficulty,
-         take_again = excluded.take_again, tags = excluded.tags,
+         take_again = excluded.take_again, tags = '[]',
          rated_on = excluded.rated_on`,
     )
     .bind(
@@ -113,7 +112,6 @@ export async function POST(request: Request) {
       scores.overall,
       scores.difficulty,
       takeAgain ? 1 : 0,
-      JSON.stringify(tags),
       todayIso(),
     )
     .run();

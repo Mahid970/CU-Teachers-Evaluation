@@ -9,7 +9,7 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
-import { CRITERION_KEYS, TAG_KEYS } from "../src/lib/rating";
+import { CRITERION_KEYS } from "../src/lib/rating";
 
 if (process.argv.includes("--remote")) {
   console.error("Refusing to write sample ratings to the remote database.");
@@ -65,13 +65,12 @@ for (const teacherId of teacherIds) {
     const overall = score();
     const difficulty = 1 + Math.floor(rand() * 5);
     const takeAgain = overall >= 4 ? 1 : overall >= 3 ? (rand() < 0.5 ? 1 : 0) : 0;
-    const tags = TAG_KEYS.filter(() => rand() < 0.18).slice(0, 3);
     const tokenHash = createHash("sha256")
       .update(`sample:${teacherId}:${i}`)
       .digest("hex");
 
     lines.push(
-      `INSERT INTO ratings (token_hash, teacher_id, term_id, clarity, knowledge, punctuality, fairness, accessibility, engagement, overall, difficulty, take_again, tags, rated_on) VALUES ('${tokenHash}', '${teacherId}', '${TERM}', ${scores.clarity}, ${scores.knowledge}, ${scores.punctuality}, ${scores.fairness}, ${scores.accessibility}, ${scores.engagement}, ${overall}, ${difficulty}, ${takeAgain}, '${JSON.stringify(tags)}', '${today}');`,
+      `INSERT INTO ratings (token_hash, teacher_id, term_id, clarity, knowledge, punctuality, fairness, accessibility, engagement, overall, difficulty, take_again, rated_on) VALUES ('${tokenHash}', '${teacherId}', '${TERM}', ${scores.clarity}, ${scores.knowledge}, ${scores.punctuality}, ${scores.fairness}, ${scores.accessibility}, ${scores.engagement}, ${overall}, ${difficulty}, ${takeAgain}, '${today}');`,
     );
   }
 }

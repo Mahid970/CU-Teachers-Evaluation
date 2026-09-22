@@ -42,18 +42,5 @@ GROUP BY r.teacher_id${groupTerm};`;
     "DELETE FROM teacher_stats;",
     aggregate("'all'", ""),
     aggregate("r.term_id", ", r.term_id"),
-    // Tag counts are assembled separately: SQLite has no JSON object aggregate
-    // that reads clearly inline.
-    `UPDATE teacher_stats
-     SET tag_counts = COALESCE((
-       SELECT '{' || GROUP_CONCAT('"' || tag.value || '":' || tag.cnt, ',') || '}'
-       FROM (
-         SELECT j.value AS value, COUNT(*) AS cnt
-         FROM ratings r, json_each(r.tags) j
-         WHERE r.teacher_id = teacher_stats.teacher_id
-           AND (teacher_stats.term_id = 'all' OR r.term_id = teacher_stats.term_id)
-         GROUP BY j.value
-       ) tag
-     ), '{}');`,
   ];
 }

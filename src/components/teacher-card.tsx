@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { PHOTO_PREFIX, type TeacherListItem } from "@/lib/db";
-import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
 import { StarRow } from "./stars";
 
 export function TeacherAvatar({
@@ -111,7 +110,7 @@ export function TeacherRow({
           </>
         ) : (
           <p className="text-xs text-ink-muted">
-            Under {MIN_RATINGS_TO_SHOW} ratings
+            Not rated yet
           </p>
         )}
       </div>

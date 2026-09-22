@@ -36,6 +36,22 @@ export function SiteFooter() {
         </nav>
       </div>
 
+      <div className="border-t border-hairline">
+        <div className="mx-auto flex max-w-6xl flex-col gap-1.5 px-4 py-5 text-sm text-ink-muted sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} CU Teachers Evaluation. All rights reserved.</p>
+          <p>
+            Developed by{" "}
+            <a
+              href="https://github.com/Mahid970"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-grow font-semibold text-ink hover:text-brand"
+            >
+              Mahid
+            </a>
+          </p>
+        </div>
+      </div>
     </footer>
   );
 }

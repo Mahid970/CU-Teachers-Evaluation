@@ -92,9 +92,14 @@ describe("parseStudentEmail", () => {
 
 describe("rateableDepartments", () => {
   it("includes the student's own department and the faculty English teachers", () => {
-    const slugs = rateableDepartments("marketing").map((d) => d.slug);
-    expect(slugs).toContain("marketing");
-    expect(slugs).toContain("english-teachers-business");
+    const slugs = rateableDepartments("bangla").map((d) => d.slug);
+    expect(slugs).toContain("bangla");
+    expect(slugs).toContain("english-teachers-arts");
+  });
+
+  it("leaves out a shared unit that has no teachers", () => {
+    // Business lists an English-teachers unit on cu.ac.bd, but nobody is in it.
+    expect(rateableDepartments("marketing").map((d) => d.slug)).toEqual(["marketing"]);
   });
 
   it("returns just the department when the faculty has no shared unit", () => {

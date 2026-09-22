@@ -6,7 +6,6 @@ import { TeacherBrowser } from "@/components/teacher-browser";
 import { StarRow } from "@/components/stars";
 import { DEPARTMENT_BY_SLUG, FACULTY_BY_KEY } from "@/lib/departments";
 import { getTeachersByDept } from "@/lib/db";
-import { MIN_RATINGS_TO_SHOW } from "@/lib/rating";
 
 export const revalidate = 300;
 
@@ -82,7 +81,7 @@ export default async function DepartmentPage({ params }: PageProps<"/d/[slug]">)
           teachers={teachers}
           initialSort="name"
           showFilters={false}
-          emptyNote={`No teacher in ${dept.name} has reached ${MIN_RATINGS_TO_SHOW} ratings yet. Switch to "Name A–Z" to see everyone.`}
+          emptyNote={`No teacher in ${dept.name} has been rated yet. Switch to A–Z to see everyone.`}
         />
       </div>
     </div>

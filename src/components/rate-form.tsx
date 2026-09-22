@@ -9,8 +9,6 @@ import {
   CRITERIA,
   type CriterionKey,
   MAX_REVIEW_LENGTH,
-  MAX_TAGS,
-  TAGS,
 } from "@/lib/rating";
 import {
   LAST_TERM_KEY,
@@ -49,7 +47,6 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
 
   const [scores, setScores] = useState<Scores>(EMPTY);
   const [takeAgain, setTakeAgain] = useState<boolean | null>(null);
-  const [tags, setTags] = useState<string[]>([]);
   const [review, setReview] = useState("");
   const [stage, setStage] = useState<"form" | "sending" | "sent" | "error">("form");
   const [message, setMessage] = useState("");
@@ -78,7 +75,6 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
           signature: token.signature,
           scores,
           takeAgain: takeAgain ?? false,
-          tags,
         }),
       });
       const payload = (await response.json()) as { error?: string };
@@ -236,41 +232,6 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
                   {option.label}
                 </button>
               ))}
-            </div>
-          </fieldset>
-
-          <fieldset>
-            <legend className="font-medium">
-              Tags <span className="font-normal text-ink-muted">(up to {MAX_TAGS}, optional)</span>
-            </legend>
-            <p className="mt-1 text-xs text-ink-muted">
-              A fixed list, so these can be counted across everyone who rated.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {TAGS.map((tag) => {
-                const active = tags.includes(tag.key);
-                return (
-                  <button
-                    key={tag.key}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() =>
-                      setTags((current) =>
-                        active
-                          ? current.filter((t) => t !== tag.key)
-                          : current.length >= MAX_TAGS
-                            ? current
-                            : [...current, tag.key],
-                      )
-                    }
-                    className={`chip transition-colors ${
-                      active ? "!border-brand !bg-brand text-paper-raised" : ""
-                    }`}
-                  >
-                    {tag.label}
-                  </button>
-                );
-              })}
             </div>
           </fieldset>
 
