@@ -47,11 +47,12 @@ tokens for a department takes ~60 ms there, against ~9 s on a plain Node dev
 server, where the library falls back to big-number arithmetic in JavaScript.
 That difference is only ever felt in local development.
 
-Supporting measures: public numbers rebuild once a day; the browser waits a
-random moment before sending; platform logs are off; there are no analytics and
-no cookies. Scores show from a teacher's first rating (the owner's decision), so
+Supporting measures: the browser waits a random moment before sending;
+platform logs are off; there are no analytics and no cookies. Scores show from a teacher's first rating (the owner's decision), so
 with one or two ratings a teacher may be able to guess who rated them. The
-privacy page says so.
+privacy page says so. Scores also update the moment a rating is saved (the
+owner's decision), so a teacher may be able to time a change to a student; the
+privacy page says that too.
 
 | Table | What it holds | Can it identify a student? |
 |---|---|---|
@@ -61,7 +62,7 @@ privacy page says so.
 | `ratings` | token hash, scores, date | no |
 | `reviews` | review hash, body, date | no — and no key in common with `ratings` |
 | `vaults` | peppered lookup, doubly-encrypted bundle | not without the student's passphrase |
-| `teacher_stats` | daily aggregates | no |
+| `teacher_stats` | aggregates, updated on each rating and rebuilt nightly | no |
 
 Run `npm run audit:privacy -- 24304043` after any change to the issuance or
 rating path. It dumps every table and fails if a student ID, an email, an IP or
@@ -125,7 +126,7 @@ never enabled in production.
 | `npm run db:local` / `db:remote` | apply migrations |
 | `npm run teachers:sync` | add new teachers from `data/cu_teachers.json`, safely (report only without `--apply`) |
 | `npm run keys:gen -- --term <id>` | a signing key for every teacher who lacks one; never replaces a key |
-| `npm run stats:build` | rebuild aggregates (the cron does this daily) |
+| `npm run stats:build` | rebuild every teacher's aggregates (the cron does this nightly) |
 | `npm run cf:preview` / `cf:deploy` | build and run/deploy on Cloudflare Workers |
 
 ---

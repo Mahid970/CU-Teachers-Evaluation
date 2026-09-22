@@ -146,8 +146,8 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
         </motion.span>
         <p className="display text-3xl">Thank you</p>
         <p className="mt-3 text-sm text-ink-muted">
-          Your rating of {teacherName} is stored with no link to you. It appears in the
-          public figures at the next daily update, so no one can tell when it arrived.
+          Your rating of {teacherName} is stored with no link to you, and it is now
+          included in their public scores.
           You can change it at any time from a browser that holds your tokens.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">

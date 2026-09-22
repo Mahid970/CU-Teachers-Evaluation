@@ -4,6 +4,7 @@ import { fromBase64, tokenHash, verifyToken } from "@/lib/blind";
 import { todayIso } from "@/lib/server-crypto";
 import { CRITERION_KEYS } from "@/lib/rating";
 import { rateLimit } from "@/lib/guard";
+import { rebuildTeacherStatements } from "@/lib/stats-sql";
 
 export const dynamic = "force-dynamic";
 
@@ -116,9 +117,16 @@ export async function POST(request: Request) {
     )
     .run();
 
+  // The teacher's public numbers move now, not overnight (owner's decision; the
+  // privacy page states what that costs). One batch, so a page never reads a
+  // half-rebuilt row.
+  await db.batch(
+    rebuildTeacherStatements(todayIso()).map((sql) => db.prepare(sql).bind(teacherId)),
+  );
+
   return Response.json({
     ok: true,
     updated: result.meta.changes > 0,
-    note: "Published in the next daily update.",
+    note: "Your rating is now included in the public figures.",
   });
 }

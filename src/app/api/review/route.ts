@@ -104,5 +104,5 @@ export async function POST(request: Request) {
     .bind(hash, teacherId, term.id, body, todayIso())
     .run();
 
-  return Response.json({ ok: true, note: "Published in the next daily update." });
+  return Response.json({ ok: true, note: "Your review is now on the teacher\u2019s page." });
 }

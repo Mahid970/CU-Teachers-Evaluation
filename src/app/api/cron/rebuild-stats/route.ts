@@ -7,11 +7,10 @@ export const dynamic = "force-dynamic";
 /**
  * Aggregate rebuild by hand, with the CRON_SECRET only.
  *
- * The daily run is the `scheduled` handler in worker.ts, not this route.
- * Public numbers move once a day rather than on every write, so a teacher
- * cannot match a change in their score to a particular student's visit. That
- * is why this must never be callable without the secret: a request header
- * such as the old `x-cron-trigger` is set by whoever sends the request.
+ * The nightly run is the `scheduled` handler in worker.ts, not this route, and
+ * each rating already updates its own teacher. This must still never be
+ * callable without the secret: a request header such as the old
+ * `x-cron-trigger` is set by whoever sends the request.
  */
 export async function POST(request: Request) {
   const { env: cfEnv } = await getCloudflareContext({ async: true });

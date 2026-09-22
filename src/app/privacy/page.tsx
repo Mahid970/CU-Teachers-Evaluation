@@ -77,18 +77,18 @@ export default function PrivacyPage() {
         <TokenPool />
       </div>
 
-      <h2 className="display mt-14 text-3xl">Two more protections</h2>
+      <h2 className="display mt-14 text-3xl">What timing can give away</h2>
       <p className="mt-4 text-ink-muted">
-        Public figures are rebuilt once a day rather than the moment a rating arrives,
-        so no one can watch a number move right after a particular student was in
-        the room. Your browser waits a random moment before sending, for the same
-        reason.
+        Scores update the moment a rating is saved, and they appear from a
+        teacher&apos;s first rating. Nothing we store links a rating to you, but
+        timing can: a teacher who sees their score move right after a class, or
+        after talking with one student, may be able to guess who rated them. The
+        same is true when only one or two students have rated someone. Your browser
+        waits a random moment before sending, which helps only a little.
       </p>
       <p className="mt-4 text-ink-muted">
-        One thing these cannot hide: a teacher&apos;s scores appear from the first
-        rating. If only one or two students have rated someone, that teacher may be
-        able to guess who they were, especially in a small class. If that worries
-        you, wait until others in your class have rated.
+        If that worries you, rate later, at a time with no link to any class or
+        conversation, or wait until others in your class have rated.
       </p>
 
       <h2 className="display mt-14 text-3xl">What this does not protect against</h2>

@@ -3,14 +3,38 @@ import { BAYESIAN_PRIOR_WEIGHT, DEFAULT_PRIOR_MEAN } from "./rating";
 /**
  * Rebuilds the public aggregates from raw ratings.
  *
- * This runs once a day rather than on write, so that a teacher cannot watch the
- * numbers move right after a particular student was in the room.
+ * A rating updates its own teacher's numbers the moment it is saved (see
+ * `rebuildTeacherStatements`), by the owner's decision in September 2026. That
+ * lets a teacher see a score move right after a particular student was in the
+ * room; the privacy page says so. This full rebuild still runs nightly, which
+ * refreshes every teacher's weighted score against the site-wide average.
  *
  * `term_id = 'all'` holds the all-time roll-up used by the site; per-term rows
  * are kept alongside it for the term selector.
  */
 export function rebuildStatsStatements(today: string): string[] {
-  const aggregate = (termExpr: string, groupTerm: string) => `
+  return [
+    "DELETE FROM teacher_stats;",
+    aggregate(today, "'all'", ""),
+    aggregate(today, "r.term_id", ", r.term_id"),
+  ];
+}
+
+/**
+ * The same rebuild for one teacher, run as soon as a rating for them is saved.
+ * Every statement takes the teacher's id as ?1.
+ */
+export function rebuildTeacherStatements(today: string): string[] {
+  const only = "WHERE r.teacher_id = ?1";
+  return [
+    "DELETE FROM teacher_stats WHERE teacher_id = ?1;",
+    aggregate(today, "'all'", "", only),
+    aggregate(today, "r.term_id", ", r.term_id", only),
+  ];
+}
+
+function aggregate(today: string, termExpr: string, groupTerm: string, where = "") {
+  return `
 INSERT INTO teacher_stats (
   teacher_id, term_id, n,
   avg_clarity, avg_knowledge, avg_punctuality, avg_fairness,
@@ -36,11 +60,6 @@ SELECT
   '{}' AS tag_counts,
   '${today}'
 FROM ratings r
+${where}
 GROUP BY r.teacher_id${groupTerm};`;
-
-  return [
-    "DELETE FROM teacher_stats;",
-    aggregate("'all'", ""),
-    aggregate("r.term_id", ", r.term_id"),
-  ];
 }

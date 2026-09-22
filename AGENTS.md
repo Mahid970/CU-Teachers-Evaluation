@@ -26,8 +26,12 @@ Hard rules:
    them. If a feature needs that link, the feature is wrong.
 3. **The rating endpoint takes no authentication.** A token is the only proof,
    and it must stay unlinkable to a sign-in.
-4. **Aggregates rebuild on a schedule, never on write.** Live updates would let
-   a teacher time a rating to a student.
+4. **Aggregates update on write, by the owner's decision (September 2026).**
+   A rating rebuilds its own teacher's row in `teacher_stats` as it is saved,
+   and a full rebuild runs nightly. This lets a teacher time a score change to a
+   student; the privacy page says so plainly. Keep that page honest if this
+   changes again, and never add anything that makes the timing sharper (such
+   as storing a rating's time, not just its date).
 5. **A written review is never stored beside its own scores.** Free text is the
    most identifying thing a rating carries, and the teacher reading it has the
    most context to decode it. So a review is filed under a *different* hash of

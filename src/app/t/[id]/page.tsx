@@ -256,7 +256,7 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
                   className="mt-0.5 shrink-0"
                   aria-hidden="true"
                 />
-                Scores refresh once a day, so no one can tell when a rating arrived.
+                Scores update as soon as a student rates.
               </p>
             </div>
           )}
