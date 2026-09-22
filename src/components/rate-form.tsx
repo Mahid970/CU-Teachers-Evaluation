@@ -165,7 +165,7 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
 
         <ul className="mt-5 space-y-6">
           {CRITERIA.map((criterion) => (
-            <li key={criterion.key} className="flex flex-wrap items-center justify-between gap-3">
+            <li key={criterion.key} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
               <div>
                 <p className="font-medium">{criterion.label}</p>
                 <p className="text-xs text-ink-muted">{criterion.hint}</p>
@@ -183,7 +183,7 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
         <hr className="hairline my-6" />
 
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <div>
               <p className="font-medium">Overall</p>
               <p className="text-xs text-ink-muted">Your general impression as a teacher</p>
@@ -196,7 +196,7 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
             />
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <div>
               <p className="font-medium">Difficulty</p>
               <p className="text-xs text-ink-muted">
