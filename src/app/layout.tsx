@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, Instrument_Sans } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { ScrollState } from "@/components/scroll-state";
 import "./globals.css";
 
 // Expanded widths carry the numbers; the width axis is used, not faked.
@@ -80,6 +81,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />
+        <ScrollState />
       </body>
     </html>
   );
