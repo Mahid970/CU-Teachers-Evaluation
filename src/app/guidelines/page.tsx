@@ -77,7 +77,8 @@ export default function GuidelinesPage() {
 
       <h2 className="display mt-12 text-3xl">Fair use</h2>
       <p className="mt-4 text-ink-muted">
-        One student, one rating per teacher, per term. Attempting to rate a teacher
+        One student, one rating per teacher, for good. You can change your rating
+        whenever you like, but never add a second. Attempting to rate a teacher
         repeatedly, or rating teachers who never taught you, distorts the picture for
         everyone and is prevented technically wherever we can.
       </p>

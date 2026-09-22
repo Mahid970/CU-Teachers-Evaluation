@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     `SELECT id FROM terms WHERE is_open = 1 ORDER BY opens_at DESC LIMIT 1`,
   ).first<{ id: string }>();
   if (!term || term.id !== parsed.data.term) {
-    return Response.json({ error: "That term is not open." }, { status: 409 });
+    return Response.json({ error: "Rating is not open right now." }, { status: 409 });
   }
 
   await env.DB.prepare(

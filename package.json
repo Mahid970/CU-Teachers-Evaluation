@@ -18,7 +18,6 @@
     "keys:gen": "tsx scripts/gen-term-keys.ts",
     "stats:build": "tsx scripts/build-stats.ts",
     "dev:sample": "tsx scripts/dev-sample-ratings.ts",
-    "term:close": "tsx scripts/close-term.ts",
     "audit:privacy": "node scripts/privacy-audit.mjs",
     "check:e2e": "node scripts/e2e-check.mjs",
     "types": "wrangler types"

@@ -120,7 +120,6 @@ never enabled in production.
 | `npm run db:local` / `db:remote` | apply migrations |
 | `npm run keys:gen -- --term <id>` | one signing key pair per teacher for a term |
 | `npm run stats:build` | rebuild aggregates (the cron does this daily) |
-| `npm run term:close -- --term <id>` | close a term and destroy its keys |
 | `npm run cf:preview` / `cf:deploy` | build and run/deploy on Cloudflare Workers |
 
 ---
@@ -150,13 +149,17 @@ never enabled in production.
    Logpush). `wrangler.jsonc` disables observability, but confirm it in the
    dashboard — request logs would undo much of the anonymity work.
 
-### Each term
+### Ratings are permanent
 
-```bash
-npm run term:close -- --term 2025-2 --remote   # destroys last term's keys
-npx wrangler secret put TERM_PEPPER            # rotate: old issuance rows become meaningless
-npm run keys:gen -- --term 2026-1 --label "Spring 2026" --remote
-```
+There are no terms. Internally the site has one term, `2026-1`, which stays
+open for good: a student collects their tokens once, rates each teacher once,
+and can change that rating at any time. Keep it that way:
+
+- **Never rotate `TERM_PEPPER`.** It is what recognises a student who already
+  collected tokens. A new pepper would let every student collect a second set
+  and rate everyone twice.
+- **Never re-run `keys:gen` for `2026-1`.** New keys would invalidate every
+  token students already hold.
 
 ---
 

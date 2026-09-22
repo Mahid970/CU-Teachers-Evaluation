@@ -3,7 +3,7 @@ import { MyTokens } from "@/components/my-tokens";
 
 export const metadata: Metadata = {
   title: "My ratings",
-  description: "The teachers you can still rate this term, kept in this browser only.",
+  description: "The teachers you can still rate, kept in this browser only.",
   robots: { index: false, follow: false },
 };
 

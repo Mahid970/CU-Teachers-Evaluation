@@ -48,8 +48,7 @@ export default function CorrectionsPage() {
       </p>
       <p className="mt-6 text-sm text-ink-muted">
         Students: if you believe a rating of yours was submitted by mistake, you can
-        edit it yourself from the browser that holds your tokens, until the term
-        closes.
+        edit it yourself at any time from a browser that holds your tokens.
       </p>
     </div>
   );

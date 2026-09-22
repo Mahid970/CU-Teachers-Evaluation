@@ -33,8 +33,8 @@ export default function TermsPage() {
       <h2 className="display mt-12 text-3xl">Who may rate</h2>
       <p className="mt-4 text-ink-muted">
         Current students with an @std.cu.ac.bd account, rating teachers of their own
-        department, once per teacher per term. Attempting to bypass that limit, to
-        automate ratings, or to submit ratings for teachers who never taught you is a
+        department, once per teacher. You can change a rating later, but not add a
+        second. Attempting to bypass that limit, to automate ratings, or to submit ratings for teachers who never taught you is a
         misuse of the site.
       </p>
 

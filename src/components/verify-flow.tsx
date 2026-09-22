@@ -233,7 +233,7 @@ export function VerifyFlow({
         <div className="panel mb-6 p-5">
           <p className="flex items-center gap-2 font-medium">
             <Check size={18} strokeWidth={1.5} className="text-brand" />
-            This device already holds tokens for {existing.termLabel}
+            This device already holds your tokens
           </p>
           <p className="mt-2 text-sm text-ink-muted">
             {existing.department.name}, {existing.tokens.length} teachers, {existing.rated.length} rated so far
@@ -383,7 +383,7 @@ export function VerifyFlow({
         <div className="panel p-6">
           <p className="flex items-center gap-2 font-medium">
             <ShieldCheck size={18} strokeWidth={1.5} className="text-brand" />
-            You have already collected your tokens this term
+            You have already collected your tokens
           </p>
           <p className="prose-measure mt-2 text-sm text-ink-muted">
             They cannot be issued twice, because that is what stops anyone rating a teacher
@@ -434,7 +434,7 @@ export function VerifyFlow({
 
           <p className="display text-3xl">{bundle.department.name}</p>
           <p className="mt-1 text-sm text-ink-muted">
-            {bundle.termLabel}, session {bundle.session}. You can rate{" "}
+            Session {bundle.session}. You can rate{" "}
             {bundle.tokens.length} teachers.
           </p>
 

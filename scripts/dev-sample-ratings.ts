@@ -46,7 +46,7 @@ const teacherIds: string[] = JSON.parse(idsRaw)[0].results.map(
 
 const lines: string[] = [
   `DELETE FROM ratings;`,
-  `INSERT OR REPLACE INTO terms (id, label, opens_at, closes_at, is_open) VALUES ('${TERM}', 'Spring 2026', '2026-01-15', '2026-12-31', 1);`,
+  `INSERT OR REPLACE INTO terms (id, label, opens_at, closes_at, is_open) VALUES ('${TERM}', 'Permanent', '2026-01-15', '9999-12-31', 1);`,
 ];
 
 for (const teacherId of teacherIds) {

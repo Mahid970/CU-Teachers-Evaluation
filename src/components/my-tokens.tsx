@@ -94,7 +94,7 @@ export function MyTokens() {
           <div>
             <p className="display text-2xl">{bundle.department.name}</p>
             <p className="mt-1 text-sm text-ink-muted">
-              {bundle.termLabel}, session {bundle.session}
+              Session {bundle.session}
             </p>
           </div>
           <p className="numerals text-sm text-ink-muted">
@@ -121,7 +121,7 @@ export function MyTokens() {
             onClick={() => {
               if (
                 confirm(
-                  "Remove your tokens from this browser? Without a backup you cannot rate again this term.",
+                  "Remove your tokens from this browser? Without a backup or a passphrase you cannot rate again.",
                 )
               ) {
                 forgetDevice();

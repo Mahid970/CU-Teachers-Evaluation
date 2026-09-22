@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     .bind(teacherId, term.id)
     .first<{ public_key: string }>();
   if (!keyRow) {
-    return Response.json({ error: "That teacher cannot be rated this term." }, { status: 404 });
+    return Response.json({ error: "That teacher cannot be rated." }, { status: 404 });
   }
 
   // The signature only verifies under this teacher's key for this term, so a

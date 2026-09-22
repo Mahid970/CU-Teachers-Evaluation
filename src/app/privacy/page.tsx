@@ -44,7 +44,7 @@ export default function PrivacyPage() {
       <ol className="mt-5 space-y-5">
         {[
           {
-            title: "You sign in with Google, once per term",
+            title: "You sign in with Google, once",
             body: "We ask Google only whether your address ends in std.cu.ac.bd. Your ID tells us your department. It is held in memory for a few seconds and never written down.",
           },
           {
@@ -53,7 +53,7 @@ export default function PrivacyPage() {
           },
           {
             title: "We record one fact",
-            body: "That a student with a certain ID already collected their tokens this term. It is stored as a keyed hash, and the key is destroyed when the term ends, which makes even that unreadable afterwards.",
+            body: "That a student with a certain ID has already collected their tokens. It is stored as a keyed hash, and it says nothing about which teachers they rated or how.",
           },
           {
             title: "You rate without signing in",
@@ -134,7 +134,7 @@ export default function PrivacyPage() {
 
       <h2 className="display mt-14 text-3xl">Rating from more than one device</h2>
       <p className="prose-measure mt-4 text-ink-muted">
-        Tokens are issued once per term, because issuing them twice would let one
+        Tokens are issued once per student, because issuing them twice would let one
         student rate twice. They live in the browser that collected them, which
         used to mean one device and no way back if you cleared it.
       </p>

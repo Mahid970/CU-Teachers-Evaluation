@@ -254,7 +254,7 @@ export async function collectTokens(
   if (bundle.tokens.length === 0) {
     if (alreadyIssued) {
       throw new AlreadyIssuedError(
-        firstError ?? "You have already collected your tokens this term.",
+        firstError ?? "You have already collected your tokens.",
       );
     }
     throw new Error(firstError ?? "No tokens could be issued.");

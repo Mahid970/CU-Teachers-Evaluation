@@ -116,7 +116,7 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
       <div className="panel mt-10 p-7">
         <p className="display text-2xl">You need a token for this teacher</p>
         <p className="mt-2 text-sm text-ink-muted">
-          Tokens are handed out once per term, per student, for the teachers of your
+          Tokens are handed out once per student, for the teachers of your
           own department. Verify with your CU Google account, or restore your backup
           if you have switched browser.
         </p>
@@ -148,7 +148,7 @@ export function RateForm({ teacherId, teacherName }: { teacherId: string; teache
         <p className="mt-3 text-sm text-ink-muted">
           Your rating of {teacherName} is stored with no link to you. It appears in the
           public figures at the next daily update, so no one can tell when it arrived.
-          You can change it from this browser until the term closes.
+          You can change it at any time from a browser that holds your tokens.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/me" className="btn btn-primary">Rate another teacher</Link>
