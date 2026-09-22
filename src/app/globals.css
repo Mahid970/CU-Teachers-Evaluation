@@ -1070,13 +1070,22 @@ body {
 
   /* ---- The bar ---------------------------------------------------------- */
 
+  /* Solid on phones. A blur behind a sticky bar is re-sampled on every frame
+     of scrolling, which a phone feels and a laptop does not; at this opacity
+     the difference is barely visible. */
   .site-header {
     position: sticky;
     top: 0;
     z-index: 50;
     border-bottom: 1px solid var(--hairline);
-    background: color-mix(in srgb, var(--ground) 85%, transparent);
-    backdrop-filter: saturate(160%) blur(10px);
+    background: color-mix(in srgb, var(--ground) 97%, transparent);
+  }
+
+  @media (min-width: 768px) {
+    .site-header {
+      background: color-mix(in srgb, var(--ground) 85%, transparent);
+      backdrop-filter: saturate(160%) blur(10px);
+    }
   }
 
   .site-mark {
@@ -1359,6 +1368,28 @@ body {
   }
 
   /* ---- The campus map --------------------------------------------------- */
+
+  /* Two layers, one frame. Each gets its own compositor layer, so the moving
+     tour repaints only itself and the campus underneath is never repainted. */
+  .campus-ground,
+  .campus-overlay {
+    will-change: transform;
+  }
+
+  .campus-overlay {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Scrolling, off screen or in a hidden tab: whatever is mid-flight holds
+     still instead of costing a frame. */
+  .campus-overlay[data-paused="true"],
+  .campus-overlay[data-paused="true"] * {
+    animation-play-state: paused !important;
+  }
 
   .campus-outline {
     fill: var(--campus);

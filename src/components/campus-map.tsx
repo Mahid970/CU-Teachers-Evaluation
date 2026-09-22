@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   CAMPUS_BUILDINGS,
@@ -29,6 +29,14 @@ import {
  * A line tours the faculties one hop at a time, thrown into the air rather than
  * drawn along the ground, and stops on each landing long enough to name where
  * it is. Pointing at any faculty takes the tour over.
+ *
+ * Drawn as two stacked layers, for phones. The campus is four hundred paths
+ * and never changes after it assembles; the tour moves every frame. In one SVG,
+ * every frame of the ball repainted the whole campus on the main thread, which
+ * is what made scrolling past it stutter. Apart, and each on its own
+ * compositor layer, the campus is painted once and the per-frame work is a
+ * handful of shapes. The tour also stands still while the map is off screen,
+ * while the tab is hidden, and while the page is being scrolled.
  */
 
 const [VIEW_X, VIEW_Y, VIEW_W, VIEW_H] = CAMPUS_VIEWBOX.split(" ").map(Number);
@@ -119,15 +127,57 @@ export function CampusMap({ counts }: { counts: Record<string, number> }) {
     return () => query.removeEventListener("change", sync);
   }, []);
 
+  // Paused whenever nobody can see it move, or the page is busy scrolling.
+  const frame = useRef<HTMLElement>(null);
+  const [onScreen, setOnScreen] = useState(true);
+  const [scrolling, setScrolling] = useState(false);
+  const [tabVisible, setTabVisible] = useState(true);
+
+  useEffect(() => {
+    const node = frame.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting));
+    observer.observe(node);
+
+    const onVisibility = () => setTabVisible(document.visibilityState === "visible");
+    document.addEventListener("visibilitychange", onVisibility);
+
+    // One state change when scrolling starts and one when it settles, never
+    // one per scroll event.
+    let settle: ReturnType<typeof setTimeout> | undefined;
+    let busy = false;
+    const onScroll = () => {
+      if (!busy) {
+        busy = true;
+        setScrolling(true);
+      }
+      clearTimeout(settle);
+      settle = setTimeout(() => {
+        busy = false;
+        setScrolling(false);
+      }, 500);
+    };
+    addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
+      removeEventListener("scroll", onScroll);
+      clearTimeout(settle);
+    };
+  }, []);
+
+  const paused = !onScreen || !tabVisible || scrolling;
+
   const step = useMemo(() => readStage(stage), [stage]);
 
   // Pointing at a faculty holds the tour where it is: two labels competing for
   // the same map is worse than a tour that waits.
   useEffect(() => {
-    if (!motion || hovered) return;
+    if (!motion || hovered || paused) return;
     const timer = setTimeout(() => setStage((s) => (s + 1) % STAGES), step.duration);
     return () => clearTimeout(timer);
-  }, [motion, hovered, stage, step.duration]);
+  }, [motion, hovered, paused, stage, step.duration]);
 
   const activeKey = hovered ?? (motion ? step.landedOn : null);
   const current = CAMPUS_FACULTIES.find((f) => f.key === activeKey);
@@ -140,12 +190,12 @@ export function CampusMap({ counts }: { counts: Record<string, number> }) {
   const tipAlign = tipLeft < 26 ? "start" : tipLeft > 74 ? "end" : "center";
 
   return (
-    <figure className="panel relative overflow-hidden">
+    <figure ref={frame} className="panel relative overflow-hidden">
+      {/* The campus: painted once, then left alone. */}
       <svg
         viewBox={CAMPUS_VIEWBOX}
-        className="campus-map block h-auto w-full bg-surface-sunk"
-        role="img"
-        aria-label="Map of the University of Chittagong campus, with each faculty building marked."
+        className="campus-map campus-ground block h-auto w-full bg-surface-sunk"
+        aria-hidden="true"
       >
         <CampusGround />
 
@@ -155,6 +205,16 @@ export function CampusMap({ counts }: { counts: Record<string, number> }) {
         <text x={VIEW_X + VIEW_W - 20} y={VIEW_Y + 106} className="campus-title">
           Chittagong
         </text>
+      </svg>
+
+      {/* Everything that moves or can be pointed at, drawn over it. */}
+      <svg
+        viewBox={CAMPUS_VIEWBOX}
+        className="campus-map campus-overlay"
+        data-paused={paused ? "true" : undefined}
+        role="img"
+        aria-label="Map of the University of Chittagong campus, with each faculty building marked."
+      >
 
         {motion ? (
           <g className="campus-tour" data-clearing={step.clearing ? "true" : undefined}>
