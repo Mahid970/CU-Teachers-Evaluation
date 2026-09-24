@@ -47,7 +47,10 @@ export type TeacherListItem = {
   /** Just the file name; the prefix is added when rendering. */
   photo: string | null;
   n: number;
+  /** What students actually gave: the number shown. */
   score: number;
+  /** Weighted towards the site average; used to order lists, never shown. */
+  rank_score: number;
 };
 
 export const PHOTO_PREFIX = "https://cu.ac.bd/assets/image/faculty_staff_users/";
@@ -62,7 +65,8 @@ function toListItem(row: JoinedRow): TeacherListItem {
     faculty_key: row.faculty_key,
     photo: row.photo_url ? row.photo_url.replace(PHOTO_PREFIX, "") : null,
     n: published ? row.n! : 0,
-    score: published ? row.bayesian_score! : 0,
+    score: published ? row.avg_overall! : 0,
+    rank_score: published ? row.bayesian_score! : 0,
   };
 }
 
@@ -130,7 +134,7 @@ export async function getTeachersByDept(slug: string): Promise<TeacherListItem[]
     .prepare(
       `SELECT t.id, t.name, t.designation, t.photo_url,
               d.name AS dept_name, d.faculty_key,
-              s.n, s.bayesian_score
+              s.n, s.avg_overall, s.bayesian_score
        FROM teachers t
        JOIN departments d ON d.slug = t.dept_slug
        LEFT JOIN teacher_stats s ON s.teacher_id = t.id AND s.term_id = 'all'
@@ -147,7 +151,7 @@ export async function getAllTeachers(): Promise<TeacherListItem[]> {
     .prepare(
       `SELECT t.id, t.name, t.designation, t.photo_url,
               d.name AS dept_name, d.faculty_key,
-              s.n, s.bayesian_score
+              s.n, s.avg_overall, s.bayesian_score
        FROM teachers t
        JOIN departments d ON d.slug = t.dept_slug
        LEFT JOIN teacher_stats s ON s.teacher_id = t.id AND s.term_id = 'all'
@@ -164,7 +168,7 @@ export async function getRankedTeachers(limit = 50): Promise<TeacherListItem[]> 
     .prepare(
       `SELECT t.id, t.name, t.designation, t.photo_url,
               d.name AS dept_name, d.faculty_key,
-              s.n, s.bayesian_score
+              s.n, s.avg_overall, s.bayesian_score
        FROM teachers t
        JOIN departments d ON d.slug = t.dept_slug
        JOIN teacher_stats s ON s.teacher_id = t.id AND s.term_id = 'all'

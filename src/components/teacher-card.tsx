@@ -98,11 +98,9 @@ export function TeacherRow({
       <div className="teacher-figures">
         {rated ? (
           <>
-            {/* In a ranked list, one decimal ties constantly and the order
-                looks arbitrary, so show the precision the rank is based on. */}
-            <p className="score text-2xl">
-              {teacher.score.toFixed(rank === undefined ? 1 : 2)}
-            </p>
+            {/* What students gave. The order comes from the weighted score,
+                which is deliberately not the number on show. */}
+            <p className="score text-2xl">{teacher.score.toFixed(1)}</p>
             <StarRow value={teacher.score} size={12} showValue={false} />
             <p className="numerals text-xs text-ink-muted">
               {teacher.n} rating{teacher.n === 1 ? "" : "s"}

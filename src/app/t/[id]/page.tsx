@@ -95,10 +95,10 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
         {stats && (
           <div className="text-right">
             <p className="score text-[clamp(3rem,10vw,4.5rem)]">
-              {stats.bayesian_score.toFixed(1)}
+              {stats.avg_overall.toFixed(1)}
             </p>
             <div className="mt-1 flex justify-end">
-              <StarRow value={stats.bayesian_score} showValue={false} size={16} />
+              <StarRow value={stats.avg_overall} showValue={false} size={16} />
             </div>
             <p className="numerals mt-1 text-sm text-ink-muted">
               from {stats.n} rating{stats.n === 1 ? "" : "s"}
@@ -146,10 +146,10 @@ export default async function TeacherPage({ params }: PageProps<"/t/[id]">) {
 
               <h2 className="reveal display mt-12 text-2xl">Spread of scores</h2>
               <p className="prose-measure mt-2 text-sm text-ink-muted">
-                Students gave an average of {stats.avg_overall.toFixed(1)}. The
-                score above pulls small numbers of ratings towards the middle, so
-                a teacher rated three times cannot leap over one rated eighty
-                times.
+                The score above is the average of what students gave. Lists are
+                ordered by a weighted score instead, which pulls a handful of
+                ratings towards the site average, so a teacher rated three times
+                cannot leap over one rated eighty times.
               </p>
               <ul className="mt-5 space-y-2">
                 {[5, 4, 3, 2, 1].map((star) => {

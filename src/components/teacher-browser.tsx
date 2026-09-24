@@ -74,9 +74,11 @@ export function TeacherBrowser({
       .sort((a, b) => {
         switch (sort) {
           case "top":
-            return b.score - a.score;
+            // Ordered by the weighted score, shown as the plain average: one
+            // 5.0 must not head a list above eighty 4.8s.
+            return b.rank_score - a.rank_score;
           case "low":
-            return a.score - b.score;
+            return a.rank_score - b.rank_score;
           case "most":
             return b.n - a.n;
           default:
