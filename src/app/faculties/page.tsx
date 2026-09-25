@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import { CampusMap } from "@/components/campus-map";
 import { FacultyIcon } from "@/components/faculty-icon";
 import { StarRow } from "@/components/stars";
 import { DEPARTMENT_BY_SLUG, FACULTIES } from "@/lib/departments";
@@ -24,6 +25,14 @@ export const metadata: Metadata = {
 export default async function FacultiesPage() {
   const summaries = await getDepartmentSummaries();
 
+  // Teachers per faculty, for the map's markers. Forestry is marked by name,
+  // so it shows that institute's own count rather than its faculty's.
+  const mapCounts: Record<string, number> = {};
+  for (const d of summaries) {
+    mapCounts[d.faculty_key] = (mapCounts[d.faculty_key] ?? 0) + d.teachers;
+  }
+  mapCounts.ifes = summaries.find((d) => d.slug === "ifes")?.teachers ?? 0;
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-14">
       <h1 className="display text-4xl">Faculties &amp; departments</h1>
@@ -32,7 +41,13 @@ export default async function FacultiesPage() {
         institutes. The code beside each one is the one that appears in student IDs.
       </p>
 
-      <div className="mt-12 space-y-14">
+      {/* Students know this campus by its shape, so the map belongs where
+          people are choosing where to go. */}
+      <div className="mt-8">
+        <CampusMap counts={mapCounts} />
+      </div>
+
+      <div className="mt-14 space-y-14">
         {FACULTIES.map((faculty) => {
           const depts = summaries.filter((d) => d.faculty_key === faculty.key);
           const teachers = depts.reduce((sum, d) => sum + d.teachers, 0);

@@ -181,6 +181,53 @@ export async function getRankedTeachers(limit = 50): Promise<TeacherListItem[]> 
   return results.map(toListItem);
 }
 
+export type DemoTeacher = {
+  id: string;
+  name: string;
+  photo: string | null;
+  dept_name: string;
+  designation: string;
+  n: number;
+  score: number;
+};
+
+/**
+ * A few real teachers for the hero card.
+ *
+ * Their own photo, name and score, exactly as their page shows them: the hero
+ * animates a rating being given, and their figures never move, so nothing is
+ * claimed about them that did not happen. Teachers with the placeholder photo
+ * are skipped, since the card is mostly a portrait.
+ */
+export async function getDemoTeachers(limit = 3): Promise<DemoTeacher[]> {
+  const { results } = await (await db())
+    .prepare(
+      `SELECT t.id, t.name, t.designation, t.photo_url, d.name AS dept_name,
+              s.n, s.avg_overall
+       FROM teachers t
+       JOIN departments d ON d.slug = t.dept_slug
+       LEFT JOIN teacher_stats s ON s.teacher_id = t.id AND s.term_id = 'all'
+       WHERE t.active = 1
+         AND t.photo_url IS NOT NULL
+         AND t.photo_url NOT LIKE '%profile_pic.png'
+       -- Best rated first among those with ratings. The hero is not the place
+       -- to put a named teacher's low score in front of every visitor.
+       ORDER BY (s.n IS NULL), s.avg_overall DESC, s.n DESC, t.sort_order
+       LIMIT ?1`,
+    )
+    .bind(limit)
+    .all<JoinedRow>();
+  return results.map((row) => ({
+    id: row.id,
+    name: row.name,
+    designation: row.designation,
+    dept_name: row.dept_name,
+    photo: row.photo_url ? row.photo_url.replace(PHOTO_PREFIX, "") : null,
+    n: row.n ?? 0,
+    score: row.avg_overall ?? 0,
+  }));
+}
+
 export type SiteCounts = {
   teachers: number;
   departments: number;

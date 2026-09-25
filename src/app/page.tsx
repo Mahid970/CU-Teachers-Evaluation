@@ -20,9 +20,14 @@ import {
 import { FacultyIcon } from "@/components/faculty-icon";
 import { TeacherBrowser } from "@/components/teacher-browser";
 import { CountUp } from "@/components/count-up";
-import { CampusMap } from "@/components/campus-map";
+import { RatingDemo } from "@/components/rating-demo";
 import { FACULTIES } from "@/lib/departments";
-import { getDepartmentSummaries, getRankedTeachers, getSiteCounts } from "@/lib/db";
+import {
+  getDemoTeachers,
+  getDepartmentSummaries,
+  getRankedTeachers,
+  getSiteCounts,
+} from "@/lib/db";
 
 // Read from the live database on every request. With ISR, `next build` wrote
 // these pages from the build machine's local database, and with no refresh
@@ -30,10 +35,11 @@ import { getDepartmentSummaries, getRankedTeachers, getSiteCounts } from "@/lib/
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [counts, ranked, deptSummaries] = await Promise.all([
+  const [counts, ranked, deptSummaries, demoTeachers] = await Promise.all([
     getSiteCounts(),
     getRankedTeachers(60),
     getDepartmentSummaries(),
+    getDemoTeachers(3),
   ]);
 
   const byFaculty = new Map<string, { depts: number; teachers: number }>();
@@ -45,17 +51,11 @@ export default async function HomePage() {
     byFaculty.set(d.faculty_key, entry);
   }
 
-  const mapCounts: Record<string, number> = Object.fromEntries(
-    [...byFaculty].map(([key, entry]) => [key, entry.teachers]),
-  );
-  // The map marks Forestry by name, so it shows that institute's own count.
-  mapCounts.ifes = deptSummaries.find((d) => d.slug === "ifes")?.teachers ?? 0;
-
   return (
     <>
       {/* ---- Hero: the ID decode carries the page ---------------------- */}
       <section className="mx-auto max-w-6xl px-4 pt-8 pb-14 sm:pt-16 lg:pt-20">
-        <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
+        <div className="grid items-center gap-10 lg:grid-cols-12 lg:items-stretch lg:gap-14">
           <div className="lg:col-span-6">
             <p className="hero-pill">
               <span className="hero-pill-dot" aria-hidden="true" />
@@ -81,8 +81,8 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="lg:col-span-6">
-            <CampusMap counts={mapCounts} />
+          <div className="flex lg:col-span-6">
+            <RatingDemo teachers={demoTeachers} />
           </div>
         </div>
 
